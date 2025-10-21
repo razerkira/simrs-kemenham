@@ -15,7 +15,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { PengajuanDinasWithProfile } from '@/types/database' // Tipe data 'Dinas'
-import { prosesVerifikasiDinas, VerifikasiFormState } from './actions' // Action 'Dinas'
+import { prosesVerifikasiDinas } from './actions' // Action 'Dinas'
+import { VerifikasiFormState } from './types'
 import { toast } from "sonner"
 import { createClient } from '@/utils/supabase/client'
 import { Download, FileText, CalendarDays } from "lucide-react"
