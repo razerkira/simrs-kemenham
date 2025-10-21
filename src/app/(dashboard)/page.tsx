@@ -17,10 +17,15 @@ type AktivitasPegawai = {
 async function getCutiHariIni(): Promise<AktivitasPegawai[]> {
   const supabase = createClient()
   const today = new Date();
-  // Set ke awal hari
-  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString(); 
-  // Set ke akhir hari
-  const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).toISOString();
+  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+
+  // --- Tipe Eksplisit Hasil Query Cuti ---
+  type CutiQueryResult = {
+      id: string;
+      jenis_cuti: string;
+      profiles: { nama: string | null } | null; // Harusnya objek atau null
+  }
+  // --- Akhir Tipe Eksplisit ---
 
   const { data, error } = await supabase
     .from('pengajuan_cuti')
@@ -30,19 +35,20 @@ async function getCutiHariIni(): Promise<AktivitasPegawai[]> {
       profiles:user_id ( nama )
     `)
     .eq('status', 'disetujui')
-    // Tanggal mulai <= hari ini DAN Tanggal selesai >= hari ini
-    .lte('tgl_mulai', startOfDay) 
-    .gte('tgl_selesai', startOfDay) // Cukup cek startOfDay karena tipe 'date'
+    .lte('tgl_mulai', startOfDay)
+    .gte('tgl_selesai', startOfDay)
+    // --- TAMBAHKAN .returns() DI SINI ---
+    .returns<CutiQueryResult[]>()
 
   if (error) {
     console.error("Error fetching cuti hari ini:", error);
     return [];
   }
 
-  // Ubah format data agar seragam
+  // Sekarang 'data' sudah benar tipenya
   return data.map(item => ({
     id: item.id,
-    nama: item.profiles?.nama ?? 'N/A',
+    nama: item.profiles?.nama ?? 'N/A', // Akses .nama sudah benar
     keterangan: item.jenis_cuti
   }))
 }
@@ -52,6 +58,14 @@ async function getDinasHariIni(): Promise<AktivitasPegawai[]> {
   const supabase = createClient()
   const now = new Date().toISOString(); // Waktu saat ini
 
+  // --- Tipe Eksplisit Hasil Query Dinas ---
+  type DinasQueryResult = {
+      id: string;
+      deskripsi_kegiatan: string;
+      profiles: { nama: string | null } | null; // Harusnya objek atau null
+  }
+  // --- Akhir Tipe Eksplisit ---
+
   const { data, error } = await supabase
     .from('pengajuan_dinas')
     .select(`
@@ -60,19 +74,20 @@ async function getDinasHariIni(): Promise<AktivitasPegawai[]> {
       profiles:user_id ( nama )
     `)
     .eq('status', 'disetujui')
-    // Waktu mulai <= sekarang DAN Waktu selesai >= sekarang
-    .lte('tgl_mulai', now) 
+    .lte('tgl_mulai', now)
     .gte('tgl_selesai', now)
+    // --- TAMBAHKAN .returns() DI SINI ---
+    .returns<DinasQueryResult[]>()
 
   if (error) {
     console.error("Error fetching dinas hari ini:", error);
     return [];
   }
-  
-  // Ubah format data agar seragam
+
+  // Sekarang 'data' sudah benar tipenya
   return data.map(item => ({
     id: item.id,
-    nama: item.profiles?.nama ?? 'N/A',
+    nama: item.profiles?.nama ?? 'N/A', // Akses .nama sudah benar
     keterangan: item.deskripsi_kegiatan
   }))
 }
@@ -82,13 +97,13 @@ export default async function HomePage() {
   // Ambil data aktivitas
   const pegawaiCuti = await getCutiHariIni();
   const pegawaiDinas = await getDinasHariIni();
-  
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Dashboard Aktivitas Harian</h1>
-      
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        
+
         {/* Card Pegawai Cuti */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
