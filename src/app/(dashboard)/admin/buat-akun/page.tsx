@@ -6,16 +6,17 @@ import { Profile } from '@/types/database'
 import BuatAkunForm from './buat-akun-form' // Form (Client)
 
 // Fungsi untuk mengambil data profil user yang sedang login
-async function getUserProfile(userId: string): Promise<Profile | null> {
+async function getUserProfile(userId: string): Promise<Pick<Profile, 'role'> | null> {
+// --- SELESAI UBAH RETURN TYPE ---
   const supabase = createClient()
   const { data, error } = await supabase
     .from('profiles')
     .select('role') // Cukup ambil role
     .eq('id', userId)
     .single()
-  
+
   if (error) return null
-  return data
+  return data // Sekarang 'data' cocok dengan return type { role: ... }
 }
 
 export default async function BuatAkunPage() {
