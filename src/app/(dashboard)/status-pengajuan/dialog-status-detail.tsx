@@ -57,12 +57,12 @@ function StatusBadge({ status }: { status: PengajuanStatus }) {
     status: PengajuanStatus
   ): "warning" | "destructive" | "success" | "secondary" => {
     switch (status) {
-      case 'menunggu_verifikasi': return 'warning'
-      case 'menunggu_persetujuan': return 'secondary'
-      case 'disetujui': return 'success'
-      case 'ditolak_verifikator': return 'destructive'
-      case 'ditolak_supervisor': return 'destructive'
-      default: 'secondary'
+      case 'menunggu_verifikasi': return 'warning';
+      case 'menunggu_persetujuan': return 'secondary';
+      case 'disetujui': return 'success';
+      case 'ditolak_verifikator': return 'destructive';
+      case 'ditolak_supervisor': return 'destructive';
+      default: return 'secondary';
     }
   }
   return <Badge variant={getVariant(status)}>{getStatusText(status)}</Badge>
