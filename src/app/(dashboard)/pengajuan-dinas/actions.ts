@@ -36,7 +36,7 @@ export async function createPengajuanDinas(
   
   // 1. Ambil data user yang sedang login
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await (await supabase).auth.getUser()
   if (!user) {
     return { success: false, message: "Error: Tidak terautentikasi" }
   }
@@ -63,7 +63,7 @@ export async function createPengajuanDinas(
   const { dokumen, ...pengajuanData } = validatedFields.data;
 
   // 4. Masukkan data pengajuan dinas (tanpa file)
-  const { data: dinasData, error: dinasError } = await supabase
+  const { data: dinasData, error: dinasError } = await (await supabase)
     .from('pengajuan_dinas')
     .insert({
       user_id: user.id,
@@ -88,7 +88,7 @@ export async function createPengajuanDinas(
     const fileExt = dokumen.name.split('.').pop();
     const filePath = `${user.id}/dinas-${pengajuanDinasId}.${fileExt}`;
 
-    const { error: storageError } = await supabase.storage
+    const { error: storageError } = await (await supabase).storage
       .from('dokumen_pengajuan') // Nama bucket kita
       .upload(filePath, dokumen);
 
@@ -98,7 +98,7 @@ export async function createPengajuanDinas(
     }
 
     // 6. Jika upload berhasil, catat di tabel 'dokumen_pendukung'
-    const { error: docError } = await supabase
+    const { error: docError } = await (await supabase)
       .from('dokumen_pendukung')
       .insert({
         pengajuan_dinas_id: pengajuanDinasId, // <-- INI YANG BERBEDA
