@@ -8,7 +8,8 @@ import { z } from 'zod'
 import { toast } from "sonner"
 
 import { Profile, UserRole } from '@/types/database'
-import { updatePegawaiProfile, adminUpdateUserPassword, EditFormState } from './actions'
+import { updatePegawaiProfile, adminUpdateUserPassword } from './actions'
+import { EditFormState } from './types'
 // Import the FULL schema
 import { editProfileSchema } from './validation'
 
