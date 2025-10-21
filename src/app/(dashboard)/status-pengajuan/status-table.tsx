@@ -52,7 +52,7 @@ function StatusBadge({ status }: { status: PengajuanStatus }) {
       case 'disetujui': return 'success'
       case 'ditolak_verifikator': return 'destructive'
       case 'ditolak_supervisor': return 'destructive'
-      default: 'secondary'
+      default: return 'secondary';
     }
   }
   return <Badge variant={getVariant(status)}>{getStatusText(status)}</Badge>
