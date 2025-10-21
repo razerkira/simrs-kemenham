@@ -1,7 +1,6 @@
 // src/app/(dashboard)/pengajuan-dinas/validation.ts
 import { z } from 'zod';
 
-// --- TAMBAHAN BARU: Aturan Validasi File ---
 const MAX_FILE_SIZE_MB = 5;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const ALLOWED_MIME_TYPES = [
@@ -12,34 +11,36 @@ const ALLOWED_MIME_TYPES = [
   'image/png', // .png
   'image/webp' // .webp
 ];
-// --- SELESAI TAMBAHAN ---
 
 export const dinasSchema = z.object({
   deskripsi_kegiatan: z.string()
     .min(10, "Deskripsi kegiatan harus diisi (minimal 10 karakter)."),
-  
-  tgl_mulai: z.date({
-    required_error: "Tanggal & jam mulai harus diisi.",
-  }),
-  
-  tgl_selesai: z.date({
-    required_error: "Tanggal & jam selesai harus diisi.",
-  }),
 
-  // --- TAMBAHAN BARU: Field 'dokumen' ---
+  // --- CORRECTED DATE DEFINITIONS ---
+  // Remove the invalid options object
+  tgl_mulai: z.date(),
+  tgl_selesai: z.date(),
+  // --- END CORRECTION ---
+
   dokumen: z.instanceof(File)
-    .optional() // Opsional
+    .optional()
     .refine(
-      (file) => !file || file.size <= MAX_FILE_SIZE_BYTES, // Cek ukuran
+      (file) => !file || file.size <= MAX_FILE_SIZE_BYTES,
       `Ukuran file maksimal ${MAX_FILE_SIZE_MB} MB.`
     )
     .refine(
-      (file) => !file || ALLOWED_MIME_TYPES.includes(file.type), // Cek tipe
+      (file) => !file || ALLOWED_MIME_TYPES.includes(file.type),
       "Format file tidak didukung. (Hanya PDF, DOC, JPG, PNG, WEBP)"
     ),
-  // --- SELESAI TAMBAHAN ---
 
-}).refine(data => data.tgl_selesai > data.tgl_mulai, {
+}).refine(data => {
+    // Ensure dates exist before comparing
+    if (!data.tgl_mulai || !data.tgl_selesai) return true;
+    return data.tgl_selesai > data.tgl_mulai; // Use '>' for timestamp comparison
+  }, {
   message: "Waktu selesai harus setelah waktu mulai",
-  path: ["tgl_selesai"], 
+  path: ["tgl_selesai"],
 });
+
+// Optional: Export type if needed
+export type DinasFormValues = z.infer<typeof dinasSchema>;
