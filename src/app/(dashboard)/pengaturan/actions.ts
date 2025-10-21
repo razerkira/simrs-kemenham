@@ -20,7 +20,7 @@ export async function updateProfile(
   data: UpdateProfileInput
 ): Promise<FormState> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await (await supabase).auth.getUser();
 
   if (!user || user.id !== data.id) {
     return { success: false, message: "Error: Tidak terautentikasi atau ID tidak cocok" };
@@ -39,7 +39,7 @@ export async function updateProfile(
   }
 
   // Update data
-  const { error } = await supabase
+  const { error } = await (await supabase)
     .from('profiles')
     .update(validatedFields.data)
     .eq('id', user.id);

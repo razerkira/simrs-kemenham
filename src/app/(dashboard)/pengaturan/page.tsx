@@ -7,7 +7,7 @@ import SettingsForm from './settings-form'
 import { Profile } from '@/types/database'
 
 export default async function PengaturanPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // 1. Ambil data sesi (untuk tahu siapa yang login)
   const { data: { session } } = await supabase.auth.getSession()
