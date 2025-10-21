@@ -67,14 +67,16 @@ export async function updatePegawaiProfile(
   }
 
   // Skema validasi khusus untuk ubah password
-const updatePasswordSchema = z.object({
-  userId: z.string().uuid("ID Pegawai tidak valid"),
-  passwordBaru: z.string().min(8, "Password baru minimal 8 karakter"),
-});
+
 
 // Tipe state balikan (bisa pakai tipe EditFormState yang sudah ada)
 // --- SELESAI SERVER ACTION BARU ---
 }
+
+const updatePasswordSchema = z.object({
+  userId: z.string().uuid("ID Pegawai tidak valid"),
+  passwordBaru: z.string().min(8, "Password baru minimal 8 karakter"),
+});
 
 export async function adminUpdateUserPassword(
   data: z.infer<typeof updatePasswordSchema>
