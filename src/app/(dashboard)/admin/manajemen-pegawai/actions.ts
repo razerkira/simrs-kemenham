@@ -27,7 +27,7 @@ export async function updatePegawaiProfile(
   }
 
   // 2. Cek apakah pengguna yang melakukan aksi adalah Admin
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, message: "Error: Tidak terautentikasi" }
@@ -93,7 +93,7 @@ export async function adminUpdateUserPassword(
   }
 
   // 2. Cek apakah pengguna yang melakukan aksi adalah Admin (pakai client biasa)
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user: adminUser } } = await supabase.auth.getUser()
   if (!adminUser) {
     return { success: false, message: "Error: Tidak terautentikasi" }
@@ -108,7 +108,7 @@ export async function adminUpdateUserPassword(
   }
 
   // --- Mulai Operasi Admin ---
-  const supabaseAdmin = createAdminClient() // <-- Gunakan Kunci Master
+  const supabaseAdmin = await createAdminClient() // <-- Gunakan Kunci Master
 
   // 3. Update password user via Admin API
   const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(

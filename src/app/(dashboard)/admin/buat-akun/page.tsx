@@ -8,7 +8,7 @@ import BuatAkunForm from './buat-akun-form' // Form (Client)
 // Fungsi untuk mengambil data profil user yang sedang login
 async function getUserProfile(userId: string): Promise<Pick<Profile, 'role'> | null> {
 // --- SELESAI UBAH RETURN TYPE ---
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('profiles')
     .select('role') // Cukup ambil role
@@ -20,7 +20,7 @@ async function getUserProfile(userId: string): Promise<Pick<Profile, 'role'> | n
 }
 
 export default async function BuatAkunPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
 
   if (!session) {

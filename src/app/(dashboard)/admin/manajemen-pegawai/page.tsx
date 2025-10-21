@@ -7,7 +7,7 @@ import ManajemenPegawaiTable from './manajemen-pegawai-table' // Tabel (Client)
 
 // Fungsi untuk mengambil data profil user yang sedang login
 async function getUserProfile(userId: string): Promise<Profile | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -20,7 +20,7 @@ async function getUserProfile(userId: string): Promise<Profile | null> {
 
 // Fungsi untuk mengambil SEMUA profil pegawai (Hanya Admin)
 async function getAllPegawai(): Promise<Profile[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Query ini HANYA akan berhasil karena RLS Policy 'admin' kita
   const { data, error } = await supabase
@@ -37,7 +37,7 @@ async function getAllPegawai(): Promise<Profile[]> {
 }
 
 export default async function ManajemenPegawaiPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
 
   if (!session) {
