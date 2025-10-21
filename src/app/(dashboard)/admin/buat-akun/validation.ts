@@ -8,10 +8,8 @@ export const buatAkunSchema = z.object({
   pangkat_golongan: z.string().min(3, "Pangkat/Golongan minimal 3 karakter").or(z.literal("")).optional(),
   unit_kerja: z.string().min(3, "Unit kerja minimal 3 karakter").or(z.literal("")).optional(),
   // --- CORRECTED ROLE DEFINITION ---
-  role: z.enum(['admin', 'verificator', 'supervisor', 'pegawai'], {
-    required_error: "Role harus dipilih.",
-    invalid_type_error: "Role tidak valid.",
-  }),
+  // Remove the invalid options object
+  role: z.enum(['admin', 'verificator', 'supervisor', 'pegawai']),
   // --- END CORRECTION ---
   email: z.string().email("Format email tidak valid"),
   password: z.string().min(8, "Password minimal 8 karakter"),
