@@ -11,9 +11,9 @@ import PersetujuanCutiTable from "./persetujuan-cuti-table";
 async function getPengajuanCutiUntukDisetujui(): Promise<
   PengajuanCutiWithProfile[]
 > {
-  const supabase = createClient();
+  const supabase = await createClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await (await supabase)
     .from("pengajuan_cuti")
     // Query "Join" 3-tabel yang sama
     .select(

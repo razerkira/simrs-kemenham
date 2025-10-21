@@ -21,7 +21,7 @@ export default async function DashboardLayout({
   }
 
   // --- TAMBAHAN BARU: AMBIL DATA PROFILE ---
-  const { data: profile, error } = await supabase
+  const { data: profile, error } = await (await supabase)
     .from('profiles')
     .select('*') // Ambil semua kolom (nama, nip, role, dll)
     .eq('id', session.user.id) // Dimana ID-nya = ID user yang login
