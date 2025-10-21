@@ -1,11 +1,8 @@
 // src/app/(dashboard)/pengajuan-cuti/validation.ts
 import { z } from 'zod';
 
-// --- TAMBAHAN BARU: Aturan Validasi File ---
 const MAX_FILE_SIZE_MB = 5;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-
-// Daftar Tipe MIME yang SAMA PERSIS dengan di Supabase Bucket
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
   'application/msword', // .doc
@@ -14,35 +11,36 @@ const ALLOWED_MIME_TYPES = [
   'image/png', // .png
   'image/webp' // .webp
 ];
-// --- SELESAI TAMBAHAN ---
 
 export const cutiSchema = z.object({
   jenis_cuti: z.string()
     .min(5, "Jenis cuti atau alasan harus diisi (minimal 5 karakter)."),
-  
-  tgl_mulai: z.date({
-    required_error: "Tanggal mulai harus diisi.",
-  }),
-  
-  tgl_selesai: z.date({
-    required_error: "Tanggal selesai harus diisi.",
-  }),
 
-  // --- TAMBAHAN BARU: Field 'dokumen' ---
-  // Kita gunakan z.instanceof(File)
+  // --- CORRECTED DATE DEFINITIONS ---
+  // Remove the invalid options object
+  tgl_mulai: z.date(),
+  tgl_selesai: z.date(),
+  // --- END CORRECTION ---
+
   dokumen: z.instanceof(File)
-    .optional() // Opsional, boleh tidak diisi
+    .optional()
     .refine(
-      (file) => !file || file.size <= MAX_FILE_SIZE_BYTES, // Cek ukuran
+      (file) => !file || file.size <= MAX_FILE_SIZE_BYTES,
       `Ukuran file maksimal ${MAX_FILE_SIZE_MB} MB.`
     )
     .refine(
-      (file) => !file || ALLOWED_MIME_TYPES.includes(file.type), // Cek tipe
+      (file) => !file || ALLOWED_MIME_TYPES.includes(file.type),
       "Format file tidak didukung. (Hanya PDF, DOC, JPG, PNG, WEBP)"
     )
-  // --- SELESAI TAMBAHAN ---
 
-}).refine(data => data.tgl_selesai >= data.tgl_mulai, {
+}).refine(data => {
+    // Ensure dates exist before comparing
+    if (!data.tgl_mulai || !data.tgl_selesai) return true; // Let required check handle missing dates
+    return data.tgl_selesai >= data.tgl_mulai;
+  }, {
   message: "Tanggal selesai tidak boleh sebelum tanggal mulai",
   path: ["tgl_selesai"],
 });
+
+// Optional: Export type if needed elsewhere, though usually inferred in the form
+export type CutiFormValues = z.infer<typeof cutiSchema>;
