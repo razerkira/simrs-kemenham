@@ -32,7 +32,7 @@ export async function prosesVerifikasiDinas(
 
   // 2. Ambil ID verifikator (user yang login)
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await (await supabase).auth.getUser()
   if (!user) {
     return { success: false, message: "Error: Tidak terautentikasi" }
   }

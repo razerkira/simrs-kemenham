@@ -56,7 +56,7 @@ export default function DialogVerifikasiDinas({
     if (!dokumen) return;
     
     startTransition(async () => {
-      const { data, error } = await supabase.storage
+      const { data, error } = await (await supabase).storage
         .from('dokumen_pengajuan')
         .createSignedUrl(dokumen.storage_path, 60) 
       

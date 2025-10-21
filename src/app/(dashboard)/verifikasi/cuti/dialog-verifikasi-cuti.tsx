@@ -57,7 +57,7 @@ export default function DialogVerifikasiCuti({
     if (!dokumen) return;
     
     startTransition(async () => {
-      const { data, error } = await supabase.storage
+      const { data, error } = await (await supabase).storage
         .from('dokumen_pengajuan')
         // Buat link download sementara (60 detik)
         .createSignedUrl(dokumen.storage_path, 60) 

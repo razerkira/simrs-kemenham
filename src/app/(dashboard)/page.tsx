@@ -63,7 +63,7 @@ async function getCutiHariIni(): Promise<AktivitasPegawai[]> {
 
 // Fungsi untuk mengambil data dinas hari ini
 async function getDinasHariIni(): Promise<AktivitasPegawai[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const now = new Date().toISOString(); // Waktu saat ini
 
   // --- Tipe Eksplisit Hasil Query Dinas ---

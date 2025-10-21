@@ -50,7 +50,7 @@ export async function prosesVerifikasiCuti(
     aksi === 'setuju' ? 'menunggu_persetujuan' : 'ditolak_verifikator';
 
   // 4. Update data di database
-  const { error } = await supabase
+  const { error } = await (await supabase)
     .from('pengajuan_cuti')
     .update({
       status: statusBaru,

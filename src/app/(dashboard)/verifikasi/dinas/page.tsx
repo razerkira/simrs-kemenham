@@ -9,7 +9,7 @@ import VerifikasiDinasTable from './verifikasi-dinas-table'
 
 // Fungsi untuk mengambil data pengajuan dinas yang MASUK
 async function getPengajuanDinasMasuk(): Promise<PengajuanDinasWithProfile[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data, error } = await (await supabase)
     // --- UBAH: 'from' pengajuan_dinas ---

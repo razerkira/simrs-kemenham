@@ -11,7 +11,7 @@ import PersetujuanDinasTable from './persetujuan-dinas-table'
 async function getPengajuanDinasUntukDisetujui(): Promise<PengajuanDinasWithProfile[]> {
   const supabase = createClient()
   
-  const { data, error } = await supabase
+  const { data, error } = await (await supabase)
     .from('pengajuan_dinas') // Ambil dari 'pengajuan_dinas'
     // Query "Join" 3-tabel yang sama
     .select(`
