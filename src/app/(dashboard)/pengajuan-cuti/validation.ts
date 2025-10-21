@@ -1,4 +1,4 @@
-// src/app/(dashboard)/pengajuan-dinas/validation.ts
+// src/app/(dashboard)/pengajuan-cuti/validation.ts
 import { z } from 'zod';
 
 const MAX_FILE_SIZE_MB = 5;
@@ -12,15 +12,13 @@ const ALLOWED_MIME_TYPES = [
   'image/webp' // .webp
 ];
 
-export const dinasSchema = z.object({
-  deskripsi_kegiatan: z.string()
-    .min(10, "Deskripsi kegiatan harus diisi (minimal 10 karakter)."),
+// --- ADD 'export' HERE ---
+export const cutiSchema = z.object({
+  jenis_cuti: z.string()
+    .min(5, "Jenis cuti atau alasan harus diisi (minimal 5 karakter)."),
 
-  // --- CORRECTED DATE DEFINITIONS ---
-  // Remove the invalid options object
   tgl_mulai: z.date(),
   tgl_selesai: z.date(),
-  // --- END CORRECTION ---
 
   dokumen: z.instanceof(File)
     .optional()
@@ -31,16 +29,15 @@ export const dinasSchema = z.object({
     .refine(
       (file) => !file || ALLOWED_MIME_TYPES.includes(file.type),
       "Format file tidak didukung. (Hanya PDF, DOC, JPG, PNG, WEBP)"
-    ),
+    )
 
 }).refine(data => {
-    // Ensure dates exist before comparing
     if (!data.tgl_mulai || !data.tgl_selesai) return true;
-    return data.tgl_selesai > data.tgl_mulai; // Use '>' for timestamp comparison
+    return data.tgl_selesai >= data.tgl_mulai;
   }, {
-  message: "Waktu selesai harus setelah waktu mulai",
+  message: "Tanggal selesai tidak boleh sebelum tanggal mulai",
   path: ["tgl_selesai"],
 });
 
-// Optional: Export type if needed
-export type DinasFormValues = z.infer<typeof dinasSchema>;
+// Optional: Export type if needed elsewhere
+export type CutiFormValues = z.infer<typeof cutiSchema>;
