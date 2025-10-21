@@ -9,7 +9,8 @@ import { toast } from "sonner"
 
 import { Profile, UserRole } from '@/types/database'
 // --- IMPOR ACTION BARU ---
-import { updatePegawaiProfile, adminUpdateUserPassword, EditFormState } from './actions' 
+import { updatePegawaiProfile, adminUpdateUserPassword} from './actions' 
+import { EditFormState } from './types';
 import { editProfileSchema } from './validation' // Skema ini sudah punya 'passwordBaru' opsional
 
 import { Button } from "@/components/ui/button"

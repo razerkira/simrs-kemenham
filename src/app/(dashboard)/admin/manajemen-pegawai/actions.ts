@@ -4,7 +4,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache' // Untuk refresh tabel
 import { z } from 'zod'
-import { EditFormState } from './types' // Impor tipe baru
+import { EditFormState } from './types'; // Impor tipe baru
 import { editProfileSchema } from './validation' // Impor skema baru
 import { createAdminClient } from '@/utils/supabase/admin' // <-- Impor Admin Client
 
