@@ -9,7 +9,7 @@ import StatusTable from './status-table'
 // Fungsi untuk mengambil riwayat cuti
 async function getRiwayatCuti(userId: string): Promise<PengajuanCuti[]> {
   const supabase = createClient()
-  const { data, error } = await supabase
+  const { data, error } = await (await supabase)
     .from('pengajuan_cuti')
     .select(`
       *, 
@@ -31,7 +31,7 @@ async function getRiwayatCuti(userId: string): Promise<PengajuanCuti[]> {
 
 // --- BARU: Fungsi untuk mengambil riwayat dinas ---
 async function getRiwayatDinas(userId: string): Promise<PengajuanDinas[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('pengajuan_dinas')
     .select(`
@@ -53,7 +53,7 @@ async function getRiwayatDinas(userId: string): Promise<PengajuanDinas[]> {
 // --- SELESAI BARU ---
 
 export default async function StatusPengajuanPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) {

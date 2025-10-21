@@ -39,7 +39,7 @@ export async function prosesVerifikasiCuti(
   const { pengajuanId, catatan, aksi } = validatedFields.data
 
   // 2. Ambil ID verifikator (user yang login)
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, message: "Error: Tidak terautentikasi" }

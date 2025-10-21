@@ -31,7 +31,7 @@ export async function prosesPersetujuanCuti(
   const { pengajuanId, catatan, aksi } = validatedFields.data
 
   // 2. Ambil ID supervisor (user yang login)
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, message: "Error: Tidak terautentikasi" }

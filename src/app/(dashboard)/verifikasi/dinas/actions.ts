@@ -31,7 +31,7 @@ export async function prosesVerifikasiDinas(
   const { pengajuanId, catatan, aksi } = validatedFields.data
 
   // 2. Ambil ID verifikator (user yang login)
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, message: "Error: Tidak terautentikasi" }
@@ -42,7 +42,7 @@ export async function prosesVerifikasiDinas(
     aksi === 'setuju' ? 'menunggu_persetujuan' : 'ditolak_verifikator';
 
   // 4. Update data di database
-  const { error } = await supabase
+  const { error } = await (await supabase)
     // --- UBAH: tabel 'pengajuan_dinas' ---
     .from('pengajuan_dinas')
     .update({

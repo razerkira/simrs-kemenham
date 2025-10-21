@@ -9,7 +9,7 @@ import VerifikasiCutiTable from './verifikasi-cuti-table' // Tabel (Client)
 async function getPengajuanCutiMasuk(): Promise<PengajuanCutiWithProfile[]> {
   const supabase = createClient()
   
-  const { data, error } = await supabase
+  const { data, error } = await (await supabase)
     .from('pengajuan_cuti')
     // --- INI ADALAH "JOIN" VERSI SUPABASE ---
     // Kita ambil semua kolom dari 'pengajuan_cuti' (*),

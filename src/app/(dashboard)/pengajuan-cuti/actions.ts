@@ -38,7 +38,7 @@ export async function createPengajuanCuti(
 ): Promise<CutiFormState> {
   
   // 1. Ambil data user yang sedang login (penting untuk path file)
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { success: false, message: "Error: Tidak terautentikasi" }

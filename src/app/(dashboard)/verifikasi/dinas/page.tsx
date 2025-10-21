@@ -11,7 +11,7 @@ import VerifikasiDinasTable from './verifikasi-dinas-table'
 async function getPengajuanDinasMasuk(): Promise<PengajuanDinasWithProfile[]> {
   const supabase = createClient()
   
-  const { data, error } = await supabase
+  const { data, error } = await (await supabase)
     // --- UBAH: 'from' pengajuan_dinas ---
     .from('pengajuan_dinas')
     // Query "Join" 3-tabel
