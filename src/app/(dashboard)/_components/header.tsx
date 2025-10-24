@@ -1,46 +1,62 @@
 // src/app/(dashboard)/_components/header.tsx
+"use client"
 
-"use client";
-
-import LogoutButton from "@/components/auth/logout-button";
-import { Profile } from "@/types/database";
-import { usePathname } from "next/navigation";
+import LogoutButton from '@/components/auth/logout-button'
+import { Profile } from '@/types/database'
+import { usePathname } from 'next/navigation'
+// --- IMPOR BARU ---
+import { Button } from '@/components/ui/button'
+import { Menu } from 'lucide-react' // Ikon Burger Menu
 
 const pathTitles: { [key: string]: string } = {
-  "/": "Beranda Dashboard",
-  "/pengaturan": "Pengaturan Akun",
-  "/pengajuan-cuti": "Ajukan Cuti",
-  "/pengajuan-dinas": "Ajukan Dinas",
-  "/status-pengajuan": "Status Pengajuan Saya",
-  "/verifikasi/cuti": "Verifikasi Cuti",
-  "/verifikasi/dinas": "Verifikasi Dinas",
-  "/persetujuan/cuti": "Persetujuan Cuti",
-  "/persetujuan/dinas": "Persetujuan Dinas",
-  "/admin/manajemen-pegawai": "Manajemen Pegawai",
-  "/admin/buat-akun": "Buat Akun Pegawai",
+  '/': 'Beranda Dashboard',
+  '/pengaturan': 'Pengaturan Akun',
+  '/pengajuan-cuti': 'Ajukan Cuti',
+  '/pengajuan-dinas': 'Ajukan Dinas',
+  '/status-pengajuan': 'Status Pengajuan Saya',
+  '/verifikasi/cuti': 'Verifikasi Cuti',
+  '/verifikasi/dinas': 'Verifikasi Dinas',
+  '/persetujuan/cuti': 'Persetujuan Cuti',
+  '/persetujuan/dinas': 'Persetujuan Dinas',
+  '/admin/manajemen-pegawai': 'Manajemen Pegawai',
+  '/admin/buat-akun': 'Buat Akun Pegawai',
 };
 
-export default function Header({ profile }: { profile: Profile }) {
-  const pathname = usePathname();
+// --- UBAH PROPS HEADER ---
+interface HeaderProps {
+  profile: Profile
+  toggleSidebar: () => void // Terima fungsi toggle
+}
 
-  const title = pathTitles[pathname] || "SIMRS Kemenham";
+export default function Header({ profile, toggleSidebar }: HeaderProps) { // Ambil toggleSidebar
+  const pathname = usePathname();
+  const title = pathTitles[pathname] || 'SIMRS Kemenham';
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-white px-6">
-      <div>
+    <header className="flex h-16 items-center justify-between border-b bg-white px-4 md:px-6"> {/* Ubah padding jika perlu */}
+      {/* --- BAGIAN KIRI HEADER (Tombol + Judul) --- */}
+      <div className="flex items-center gap-3"> {/* Bungkus dengan flex */}
+        {/* Tombol Burger */}
+        <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+          <Menu className="h-5 w-5" />
+        </Button>
+        {/* Judul Halaman */}
         <h1 className="text-lg font-semibold">{title}</h1>
       </div>
+      {/* --- SELESAI BAGIAN KIRI --- */}
+
+      {/* Bagian Kanan Header (Info User + Logout - Tidak Berubah) */}
       <div className="flex items-center gap-4">
         <div className="text-right">
           <div className="font-medium">
-            {profile.nama ?? "Nama Belum Diisi"}
+            {profile.nama ?? 'Nama Belum Diisi'}
           </div>
           <div className="text-sm text-gray-500">
-            {profile.email ?? "Email tidak ada"}
+            {profile.email ?? 'Email tidak ada'}
           </div>
         </div>
         <LogoutButton />
       </div>
     </header>
-  );
+  )
 }
