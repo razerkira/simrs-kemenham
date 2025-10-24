@@ -3,9 +3,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-// --- TAMBAHAN BARU ---
-import { Toaster } from "@/components/ui/sonner"
-// --- SELESAI TAMBAHAN ---
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,10 +21,7 @@ export default function RootLayout({
     <html lang="id">
       <body className={inter.className}>
         {children}
-        {/* --- TAMBAHAN BARU --- */}
-        {/* Komponen ini akan menangani semua notifikasi toast */}
         <Toaster richColors />
-        {/* --- SELESAI TAMBAHAN --- */}
       </body>
     </html>
   );

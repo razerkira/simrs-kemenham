@@ -1,7 +1,7 @@
 // src/app/(dashboard)/persetujuan/cuti/dialog-persetujuan-cuti.tsx
-"use client"
+"use client";
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,108 +10,102 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { PengajuanCutiWithProfile } from '@/types/database' // Tipe data 'Cuti'
-import { prosesPersetujuanCuti } from './actions' // Action 'Persetujuan Cuti'
-import { PersetujuanFormState } from './types'
-import { toast } from "sonner"
-import { createClient } from '@/utils/supabase/client'
-import { Download, FileText, CalendarDays, MessageSquare } from "lucide-react"
-import { format } from "date-fns"
-import { id as localeID } from "date-fns/locale"
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { PengajuanCutiWithProfile } from "@/types/database";
+import { prosesPersetujuanCuti } from "./actions";
+import { PersetujuanFormState } from "./types";
+import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
+import { Download, FileText, CalendarDays, MessageSquare } from "lucide-react";
+import { format } from "date-fns";
+import { id as localeID } from "date-fns/locale";
 
-// Tipe data untuk props
 interface DialogPersetujuanCutiProps {
-  pengajuan: PengajuanCutiWithProfile | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  pengajuan: PengajuanCutiWithProfile | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-// Helper format tanggal
 const formatDate = (dateString: string | null | undefined) => {
-  if (!dateString) return "N/A"
-  return format(new Date(dateString), "dd MMMM yyyy", { locale: localeID })
-}
+  if (!dateString) return "N/A";
+  return format(new Date(dateString), "dd MMMM yyyy", { locale: localeID });
+};
 
-export default function DialogPersetujuanCuti({ 
-  pengajuan, 
-  open, 
-  onOpenChange 
+export default function DialogPersetujuanCuti({
+  pengajuan,
+  open,
+  onOpenChange,
 }: DialogPersetujuanCutiProps) {
-  
-  const [catatan, setCatatan] = useState("") // Catatan SUPERVISOR
-  const [isPending, startTransition] = useTransition()
-  const supabase = createClient()
+  const [catatan, setCatatan] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const supabase = createClient();
 
-  if (!pengajuan) return null
+  if (!pengajuan) return null;
 
-  const dokumen = pengajuan.dokumen_pendukung?.[0]
+  const dokumen = pengajuan.dokumen_pendukung?.[0];
 
-  // Fungsi untuk download file (sama)
   const handleDownload = async () => {
     if (!dokumen) return;
-    
+
     startTransition(async () => {
       const { data, error } = await supabase.storage
-        .from('dokumen_pengajuan')
-        .createSignedUrl(dokumen.storage_path, 60) 
-      
-      if (error) {
-        toast.error("Gagal membuat link download.")
-        return
-      }
-      window.open(data.signedUrl, '_blank')
-    })
-  }
+        .from("dokumen_pengajuan")
+        .createSignedUrl(dokumen.storage_path, 60);
 
-  // Fungsi untuk memanggil server action (Setuju / Tolak)
-  const handleSubmit = (aksi: 'setuju' | 'tolak') => {
+      if (error) {
+        toast.error("Gagal membuat link download.");
+        return;
+      }
+      window.open(data.signedUrl, "_blank");
+    });
+  };
+
+  const handleSubmit = (aksi: "setuju" | "tolak") => {
     startTransition(async () => {
-      // --- UBAH: Panggil action 'Persetujuan' ---
       const result = await prosesPersetujuanCuti({
         pengajuanId: pengajuan.id,
         catatan: catatan,
-        aksi: aksi
-      })
-      
+        aksi: aksi,
+      });
+
       if (result.success) {
-        toast.success(result.message)
-        onOpenChange(false) // Tutup dialog
-        setCatatan("") // Kosongkan catatan
+        toast.success(result.message);
+        onOpenChange(false);
       } else {
-        toast.error(result.message)
+        toast.error(result.message);
       }
-    })
-  }
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          {/* --- UBAH: Judul --- */}
           <DialogTitle>Beri Persetujuan Akhir Cuti</DialogTitle>
           <DialogDescription>
-            Tinjau detail dan catatan verifikator sebelum memberi keputusan final.
+            Tinjau detail dan catatan verifikator sebelum memberi keputusan
+            final.
           </DialogDescription>
         </DialogHeader>
-        
-        {/* Konten Detail Pengajuan */}
+
         <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
-          {/* Info Pegawai (Sama) */}
           <div className="rounded-md border p-4">
             <h4 className="mb-2 font-semibold">Data Pegawai</h4>
             <div className="grid grid-cols-3 gap-2 text-sm">
               <span className="text-gray-500">Nama</span>
-              <span className="col-span-2 font-medium">{pengajuan.profiles?.nama ?? 'N/A'}</span>
+              <span className="col-span-2 font-medium">
+                {pengajuan.profiles?.nama ?? "N/A"}
+              </span>
               <span className="text-gray-500">NIP</span>
-              <span className="col-span-2">{pengajuan.profiles?.nip ?? 'N/A'}</span>
+              <span className="col-span-2">
+                {pengajuan.profiles?.nip ?? "N/A"}
+              </span>
             </div>
           </div>
-          
-          {/* Info Cuti (Sama) */}
+
           <div className="rounded-md border p-4">
             <h4 className="mb-2 font-semibold">Data Cuti</h4>
             <div className="space-y-2 text-sm">
@@ -126,15 +120,16 @@ export default function DialogPersetujuanCuti({
                 <CalendarDays className="mr-2 h-4 w-4 text-gray-500" />
                 <span className="font-medium">Tanggal:</span>
                 <span className="ml-2 text-gray-700">
-                  {formatDate(pengajuan.tgl_mulai)} s/d {formatDate(pengajuan.tgl_selesai)}
+                  {formatDate(pengajuan.tgl_mulai)} s/d{" "}
+                  {formatDate(pengajuan.tgl_selesai)}
                 </span>
               </div>
             </div>
-            {/* Tombol Download Dokumen (Sama) */}
+
             {dokumen && (
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="mt-4 w-full"
                 onClick={handleDownload}
                 disabled={isPending}
@@ -144,8 +139,7 @@ export default function DialogPersetujuanCuti({
               </Button>
             )}
           </div>
-          
-          {/* --- KONTEN BARU: Catatan Verifikator --- */}
+
           <div className="rounded-md border bg-gray-50 p-4">
             <h4 className="mb-2 font-semibold flex items-center">
               <MessageSquare className="mr-2 h-4 w-4 text-gray-600" />
@@ -155,10 +149,11 @@ export default function DialogPersetujuanCuti({
               {pengajuan.catatan_verifikator || "Tidak ada catatan."}
             </p>
           </div>
-          
-          {/* Form Aksi Supervisor */}
+
           <div className="space-y-2 pt-2">
-            <Label htmlFor="catatan-supervisor">Catatan Anda (Supervisor)</Label>
+            <Label htmlFor="catatan-supervisor">
+              Catatan Anda (Supervisor)
+            </Label>
             <Textarea
               id="catatan-supervisor"
               placeholder="Berikan catatan persetujuan akhir atau alasan penolakan..."
@@ -169,28 +164,24 @@ export default function DialogPersetujuanCuti({
           </div>
         </div>
 
-        {/* Footer Tombol (Sama) */}
         <DialogFooter className="gap-2 pt-4 sm:justify-between">
           <DialogClose asChild>
             <Button variant="ghost">Batal</Button>
           </DialogClose>
           <div className="flex gap-2">
-            <Button 
-              variant="destructive" 
-              onClick={() => handleSubmit('tolak')}
+            <Button
+              variant="destructive"
+              onClick={() => handleSubmit("tolak")}
               disabled={isPending}
             >
               {isPending ? "Memproses..." : "Tolak Pengajuan"}
             </Button>
-            <Button 
-              onClick={() => handleSubmit('setuju')}
-              disabled={isPending}
-            >
+            <Button onClick={() => handleSubmit("setuju")} disabled={isPending}>
               {isPending ? "Memproses..." : "Setujui Pengajuan"}
             </Button>
           </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

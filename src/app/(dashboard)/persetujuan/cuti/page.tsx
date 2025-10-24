@@ -2,20 +2,20 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-// Kita pakai Tipe Gabungan yang sama
 import { PengajuanCutiWithProfile } from "@/types/database";
-// Kita akan buat tabel baru untuk persetujuan
+
 import PersetujuanCutiTable from "./persetujuan-cuti-table";
 
-// Fungsi untuk mengambil data pengajuan cuti yang perlu disetujui
 async function getPengajuanCutiUntukDisetujui(): Promise<
   PengajuanCutiWithProfile[]
 > {
   const supabase = await createClient();
 
-  const { data, error } = await (await supabase)
+  const { data, error } = await (
+    await supabase
+  )
     .from("pengajuan_cuti")
-    // Query "Join" 3-tabel yang sama
+
     .select(
       `
       *, 
@@ -31,10 +31,10 @@ async function getPengajuanCutiUntukDisetujui(): Promise<
       )
     `
     )
-    // --- INI PERBEDAAN UTAMANYA ---
-    .eq("status", "menunggu_persetujuan") // Hanya yang statusnya menunggu persetujuan
-    // --- SELESAI PERBEDAAN ---
-    .order("created_at", { ascending: true }); // Tampilkan yang paling lama dulu
+
+    .eq("status", "menunggu_persetujuan")
+
+    .order("created_at", { ascending: true });
 
   if (error) {
     console.error("Error fetching pengajuan cuti untuk persetujuan:", error);
@@ -55,7 +55,6 @@ export default async function PersetujuanCutiPage() {
         /
       </p>
 
-      {/* Kita kirim data ke komponen Client */}
       <PersetujuanCutiTable dataPengajuan={dataPengajuan} />
     </div>
   );

@@ -1,7 +1,7 @@
 // src/app/(auth)/login/page.tsx
 
-import LoginForm from './login-form' // Kita akan buat ini setelah ini
-import { Suspense } from 'react'
+import LoginForm from "./login-form";
+import { Suspense } from "react";
 
 export default function LoginPage() {
   return (
@@ -13,11 +13,10 @@ export default function LoginPage() {
         <p className="mb-6 text-center text-gray-600">
           Smart Integrated Management Reporting System
         </p>
-        {/* Suspense diperlukan jika ada logic loading */}
         <Suspense fallback={<div>Loading...</div>}>
           <LoginForm />
         </Suspense>
       </div>
     </div>
-  )
+  );
 }

@@ -1,9 +1,8 @@
 // src/app/(dashboard)/persetujuan/cuti/persetujuan-cuti-table.tsx
-"use client"
+"use client";
 
-// --- TAMBAHAN BARU ---
-import { useState } from 'react'
-import { PengajuanCutiWithProfile, PengajuanStatus } from '@/types/database'
+import { useState } from "react";
+import { PengajuanCutiWithProfile, PengajuanStatus } from "@/types/database";
 import {
   Table,
   TableBody,
@@ -12,78 +11,76 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from '@/components/ui/button'
-import { Eye } from 'lucide-react'
-import { format } from "date-fns"
-import { id as localeID } from "date-fns/locale"
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-// --- IMPOR KOMPONEN DIALOG BARU KITA ---
-import DialogPersetujuanCuti from './dialog-persetujuan-cuti'
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
+import { format } from "date-fns";
+import { id as localeID } from "date-fns/locale";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-// Tipe data untuk props (tidak berubah)
+import DialogPersetujuanCuti from "./dialog-persetujuan-cuti";
+
 interface PersetujuanCutiTableProps {
-  dataPengajuan: PengajuanCutiWithProfile[]
+  dataPengajuan: PengajuanCutiWithProfile[];
 }
 
-// ===============================================================
-// Komponen Bantuan (Helper) untuk Badge Status (Tidak berubah)
-// ===============================================================
 function StatusBadge({ status }: { status: PengajuanStatus }) {
   const getStatusText = (status: PengajuanStatus): string => {
     switch (status) {
-      case 'menunggu_verifikasi': return 'Menunggu Verifikasi'
-      case 'ditolak_verifikator': return 'Ditolak Verifikator'
-      case 'menunggu_persetujuan': return 'Menunggu Persetujuan'
-      case 'ditolak_supervisor': return 'Ditolak Supervisor'
-      case 'disetujui': return 'Disetujui'
-      default: return 'Status Tidak Dikenal'
+      case "menunggu_verifikasi":
+        return "Menunggu Verifikasi";
+      case "ditolak_verifikator":
+        return "Ditolak Verifikator";
+      case "menunggu_persetujuan":
+        return "Menunggu Persetujuan";
+      case "ditolak_supervisor":
+        return "Ditolak Supervisor";
+      case "disetujui":
+        return "Disetujui";
+      default:
+        return "Status Tidak Dikenal";
     }
-  }
+  };
 
   const getVariant = (
     status: PengajuanStatus
   ): "warning" | "destructive" | "success" | "secondary" => {
     switch (status) {
-      case 'menunggu_verifikasi': return 'warning'
-      case 'menunggu_persetujuan': return 'secondary'
-      case 'disetujui': return 'success'
-      case 'ditolak_verifikator': return 'destructive'
-      case 'ditolak_supervisor': return 'destructive'
-      default: return 'secondary'
+      case "menunggu_verifikasi":
+        return "warning";
+      case "menunggu_persetujuan":
+        return "secondary";
+      case "disetujui":
+        return "success";
+      case "ditolak_verifikator":
+        return "destructive";
+      case "ditolak_supervisor":
+        return "destructive";
+      default:
+        return "secondary";
     }
-  }
+  };
 
-  return (
-    <Badge variant={getVariant(status)}>
-      {getStatusText(status)}
-    </Badge>
-  )
+  return <Badge variant={getVariant(status)}>{getStatusText(status)}</Badge>;
 }
-// ===============================================================
 
-// ===============================================================
-// Komponen Utama Tabel
-// ===============================================================
-export default function PersetujuanCutiTable({ dataPengajuan }: PersetujuanCutiTableProps) {
-  
-  // --- STATE BARU UNTUK MENGONTROL DIALOG ---
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [selectedPengajuan, setSelectedPengajuan] = useState<PengajuanCutiWithProfile | null>(null)
-  
-  // Helper format tanggal (tidak berubah)
+export default function PersetujuanCutiTable({
+  dataPengajuan,
+}: PersetujuanCutiTableProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedPengajuan, setSelectedPengajuan] =
+    useState<PengajuanCutiWithProfile | null>(null);
+
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return "N/A"
-    return format(new Date(dateString), "dd MMMM yyyy", { locale: localeID })
-  }
-  
-  // Fungsi untuk membuka dialog
+    if (!dateString) return "N/A";
+    return format(new Date(dateString), "dd MMMM yyyy", { locale: localeID });
+  };
+
   const handleOpenDialog = (pengajuan: PengajuanCutiWithProfile) => {
     setSelectedPengajuan(pengajuan);
     setIsDialogOpen(true);
-  }
-  // --- SELESAI STATE BARU ---
+  };
 
   return (
     <Card>
@@ -93,10 +90,9 @@ export default function PersetujuanCutiTable({ dataPengajuan }: PersetujuanCutiT
       <CardContent>
         <Table>
           <TableCaption>
-            {dataPengajuan.length === 0 
-              ? "Tidak ada pengajuan cuti yang perlu disetujui." 
-              : "Daftar pengajuan cuti yang menunggu persetujuan akhir."
-            }
+            {dataPengajuan.length === 0
+              ? "Tidak ada pengajuan cuti yang perlu disetujui."
+              : "Daftar pengajuan cuti yang menunggu persetujuan akhir."}
           </TableCaption>
           <TableHeader>
             <TableRow>
@@ -113,42 +109,37 @@ export default function PersetujuanCutiTable({ dataPengajuan }: PersetujuanCutiT
             {dataPengajuan.map((pengajuan) => (
               <TableRow key={pengajuan.id}>
                 <TableCell className="font-medium">
-                  {pengajuan.profiles?.nama ?? 'N/A'}
+                  {pengajuan.profiles?.nama ?? "N/A"}
                 </TableCell>
-                <TableCell>{pengajuan.profiles?.nip ?? 'N/A'}</TableCell>
+                <TableCell>{pengajuan.profiles?.nip ?? "N/A"}</TableCell>
                 <TableCell>{formatDate(pengajuan.created_at)}</TableCell>
                 <TableCell>{pengajuan.jenis_cuti}</TableCell>
                 <TableCell className="italic text-gray-600">
                   {pengajuan.catatan_verifikator || "-"}
                 </TableCell>
                 <TableCell>
-                  <StatusBadge status={pengajuan.status} /> 
+                  <StatusBadge status={pengajuan.status} />
                 </TableCell>
                 <TableCell className="text-right">
-                  {/* --- UBAH TOMBOL INI --- */}
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="icon"
-                    onClick={() => handleOpenDialog(pengajuan)} // Tambahkan onClick
+                    onClick={() => handleOpenDialog(pengajuan)}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
-                  {/* --- SELESAI UBAH TOMBOL --- */}
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-        
-        {/* --- TAMBAHKAN KOMPONEN DIALOG DI SINI --- */}
+
         <DialogPersetujuanCuti
           pengajuan={selectedPengajuan}
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
         />
-        {/* --- SELESAI TAMBAHAN DIALOG --- */}
-
       </CardContent>
     </Card>
-  )
+  );
 }
