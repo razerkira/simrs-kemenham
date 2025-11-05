@@ -30,7 +30,19 @@ export default function LoginForm() {
   return (
     <Auth
       supabaseClient={supabase}
-      appearance={{ theme: ThemeSupa }}
+      appearance={{
+        theme: ThemeSupa,
+        variables: {
+          default: {
+            colors: {
+              // Warna utama untuk tombol submit (biru yang lebih cerah)
+              brand: "#2563EB",
+              // Warna hover (biru yang sedikit lebih gelap)
+              brandAccent: "#1D4ED8",
+            },
+          },
+        },
+      }}
       theme="light"
       providers={[]}
       redirectTo={`${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`}
