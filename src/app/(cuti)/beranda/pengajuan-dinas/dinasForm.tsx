@@ -86,7 +86,7 @@ export default function DinasForm() {
     <div className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-4 py-10">
       <Toaster />
       <div className="max-w-3xl mx-auto">
-        <Link href="/beranda">
+        <Link href="/">
           <Button variant="outline" className="mb-6">
             <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
           </Button>

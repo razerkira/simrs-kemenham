@@ -13,7 +13,6 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
 }) => {
   return (
     <div className="bg-white text-[#313235] rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300 transform hover:scale-[1.02] cursor-default">
-      {/* Menggunakan ikon Lucide React */}
       <Icon className="h-12 w-12 text-blue-600 mb-4" />
 
       <h3 className="text-xl font-semibold mb-2 text-left">{title}</h3>
@@ -22,7 +21,6 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   );
 };
 
-// 2. Feature Data
 
 const features = [
   {
@@ -69,7 +67,6 @@ export default function BerandaPage() {
         </Link>
       </div>
       <div className="w-full">
-        {/* Grid container: 1 kolom di mobile, 3 kolom di layar medium ke atas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <FeatureCard

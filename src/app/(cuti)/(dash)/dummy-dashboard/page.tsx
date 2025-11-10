@@ -15,8 +15,8 @@ import {
   XCircle,
 } from "lucide-react";
 
-import Header from "@/app/(dashboard)/_components/header";
-import Sidebar from "@/app/(dashboard)/_components/sidebar";
+import Header from "@/app/dashboard/_components/header";
+import Sidebar from "@/app/dashboard/_components/sidebar";
 import Calendar from "./calendar";
 
 // Dummy profile

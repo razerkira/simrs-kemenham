@@ -5,8 +5,7 @@ import { Profile } from "@/types/database";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button"; // Button tidak dipakai lagi di sini
-// Impor semua ikon yang diperlukan
+import { Button } from "@/components/ui/button"; 
 import {
   ChevronsLeft,
   ChevronsRight,
@@ -22,7 +21,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
-// Komponen Link Kustom (Helper)
 interface SidebarLinkProps {
   href: string;
   children: React.ReactNode;
@@ -53,17 +51,16 @@ function SidebarLink({
   );
 }
 
-// Props Sidebar sekarang menerima isCollapsed & toggleSidebar
 interface SidebarProps {
   profile: Profile;
   isCollapsed: boolean;
-  toggleSidebar: () => void; // Hanya diterima, tidak dipakai di sini
+  toggleSidebar: () => void; 
 }
 
 export default function Sidebar({
   profile,
   isCollapsed,
-}: // toggleSidebar // Tidak perlu toggleSidebar lagi di sini
+}: 
 SidebarProps) {
   const role = profile.role;
   const isAdmin = role === "admin";
@@ -72,14 +69,12 @@ SidebarProps) {
   const isPegawai = role === "pegawai" || isVerificator || isSupervisor;
 
   return (
-    // Sidebar dengan tinggi penuh layar dan posisi fixed
     <aside
       className={cn(
         "flex flex-col bg-white shadow-lg transition-all duration-300 ease-in-out fixed top-0 left-0 h-screen z-10",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
-      {/* Header Sidebar */}
       <div className="flex h-16 items-center justify-center border-b flex-shrink-0 relative gap-2">
         <Image
           alt="Logo Kemenham"
@@ -106,9 +101,7 @@ SidebarProps) {
         </h2>
       </div>
 
-      {/* Navigasi Menu */}
       <nav className="flex-1 space-y-4 p-2 overflow-y-auto">
-        {/* --- MENU UTAMA --- */}
         <div>
           {!isCollapsed && (
             <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-gray-400">
@@ -123,7 +116,7 @@ SidebarProps) {
             </li>
             <li>
               <SidebarLink
-                href="/pengaturan"
+                href="/dashboard/pengaturan"
                 isCollapsed={isCollapsed}
                 icon={Settings}
               >
@@ -132,7 +125,6 @@ SidebarProps) {
             </li>
           </ul>
         </div>
-        {/* --- MENU PEGAWAI --- */}
         {isPegawai && (
           <div>
             {!isCollapsed && (
@@ -143,7 +135,7 @@ SidebarProps) {
             <ul className="space-y-1">
               <li>
                 <SidebarLink
-                  href="/pengajuan-cuti"
+                  href="/dashboard/pengajuan-cuti"
                   isCollapsed={isCollapsed}
                   icon={FileText}
                 >
@@ -171,7 +163,6 @@ SidebarProps) {
             </ul>
           </div>
         )}
-        {/* --- MENU VERIFIKATOR --- */}
         {isVerificator && (
           <div>
             {!isCollapsed && (
@@ -201,7 +192,6 @@ SidebarProps) {
             </ul>
           </div>
         )}
-        {/* --- MENU SUPERVISOR --- */}
         {isSupervisor && (
           <div>
             {!isCollapsed && (
@@ -231,7 +221,6 @@ SidebarProps) {
             </ul>
           </div>
         )}
-        {/* --- MENU ADMIN --- */}
         {isAdmin && (
           <div>
             {!isCollapsed && (
@@ -263,7 +252,6 @@ SidebarProps) {
         )}
       </nav>
 
-      {/* HAPUS TOMBOL TOGGLE DARI SINI */}
     </aside>
   );
 }
