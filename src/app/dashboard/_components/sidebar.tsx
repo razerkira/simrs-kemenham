@@ -110,7 +110,7 @@ SidebarProps) {
           )}
           <ul className="space-y-1">
             <li>
-              <SidebarLink href="/" isCollapsed={isCollapsed} icon={Home}>
+              <SidebarLink href="/dashboard" isCollapsed={isCollapsed} icon={Home}>
                 Dashboard
               </SidebarLink>
             </li>
@@ -144,7 +144,7 @@ SidebarProps) {
               </li>
               <li>
                 <SidebarLink
-                  href="/pengajuan-dinas"
+                  href="dashboard/pengajuan-dinas"
                   isCollapsed={isCollapsed}
                   icon={PlaneTakeoff}
                 >
@@ -153,7 +153,7 @@ SidebarProps) {
               </li>
               <li>
                 <SidebarLink
-                  href="/status-pengajuan"
+                  href="dashboard/status-pengajuan"
                   isCollapsed={isCollapsed}
                   icon={FileClock}
                 >
@@ -173,7 +173,7 @@ SidebarProps) {
             <ul className="space-y-1">
               <li>
                 <SidebarLink
-                  href="/verifikasi/cuti"
+                  href="dashboard/verifikasi/cuti"
                   isCollapsed={isCollapsed}
                   icon={UserCheck}
                 >
@@ -182,7 +182,7 @@ SidebarProps) {
               </li>
               <li>
                 <SidebarLink
-                  href="/verifikasi/dinas"
+                  href="dashboard/verifikasi/dinas"
                   isCollapsed={isCollapsed}
                   icon={UserCheck}
                 >
@@ -202,7 +202,7 @@ SidebarProps) {
             <ul className="space-y-1">
               <li>
                 <SidebarLink
-                  href="/persetujuan/cuti"
+                  href="dashboard/persetujuan/cuti"
                   isCollapsed={isCollapsed}
                   icon={FileCheck}
                 >
@@ -211,7 +211,7 @@ SidebarProps) {
               </li>
               <li>
                 <SidebarLink
-                  href="/persetujuan/dinas"
+                  href="dashboard/persetujuan/dinas"
                   isCollapsed={isCollapsed}
                   icon={FileCheck}
                 >
@@ -231,7 +231,7 @@ SidebarProps) {
             <ul className="space-y-1">
               <li>
                 <SidebarLink
-                  href="/admin/manajemen-pegawai"
+                  href="dashboard/admin/manajemen-pegawai"
                   isCollapsed={isCollapsed}
                   icon={Users}
                 >
@@ -240,7 +240,7 @@ SidebarProps) {
               </li>
               <li>
                 <SidebarLink
-                  href="/admin/buat-akun"
+                  href="dashboard/admin/buat-akun"
                   isCollapsed={isCollapsed}
                   icon={UserPlus}
                 >
