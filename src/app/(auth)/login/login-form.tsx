@@ -1,53 +1,97 @@
-// src/app/(auth)/login/login-form.tsx
-
 "use client";
-
-import { createClient } from "@/utils/supabase/client";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import api from "@/lib/axios";
+import { useAuthStore } from "@/store/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, Lock, User } from "lucide-react";
 
 export default function LoginForm() {
-  const supabase = createClient();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const login = useAuthStore((state) => state.login);
 
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN") {
-        router.push("/dashboard");
-        router.refresh();
-      }
-    });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await api.get("https://simrs.idxpert.id/sanctum/csrf-cookie");
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase, router]);
+      const res = await api.post("/api/v1/auth/login", { username, password });
+      login(res.data.user, res.data.token);
+      router.push("/dashboard");
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Login gagal");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Auth
-      supabaseClient={supabase}
-      appearance={{
-        theme: ThemeSupa,
-        variables: {
-          default: {
-            colors: {
-              // Warna utama untuk tombol submit (biru yang lebih cerah)
-              brand: "#2563EB",
-              // Warna hover (biru yang sedikit lebih gelap)
-              brandAccent: "#1D4ED8",
-            },
-          },
-        },
-      }}
-      theme="light"
-      providers={[]}
-      redirectTo={`${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`}
-      socialLayout="horizontal"
-      showLinks={true}
-    />
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-sm bg-white rounded-2xl border border-stone-200 p-8 space-y-6"
+    >
+      {/* Username Field */}
+      <div className="space-y-1">
+        <Label htmlFor="username" className="text-sm text-stone-700">
+          Username
+        </Label>
+        <div className="relative">
+          <User className="absolute left-3 top-3.5 text-stone-400 w-5 h-5" />
+          <Input
+            id="username"
+            placeholder="Masukkan username Anda"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="pl-10 h-11 rounded-xl bg-stone-50 focus-visible:ring-stone-400 focus-visible:ring-2 transition-all"
+          />
+        </div>
+      </div>
+
+      {/* Password Field */}
+      <div className="space-y-1">
+        <Label htmlFor="password" className="text-sm text-stone-700">
+          Password
+        </Label>
+        <div className="relative">
+          <Lock className="absolute left-3 top-3.5 text-stone-400 w-5 h-5" />
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Masukkan password Anda"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="pl-10 pr-10 h-11 rounded-xl bg-stone-50 focus-visible:ring-stone-400 focus-visible:ring-2 transition-all"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-3.5 text-stone-400 hover:text-stone-600"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Submit Button */}
+      <Button
+        type="submit"
+        disabled={loading}
+        className="w-full h-11 rounded-xl text-white text-base font-medium transition-all"
+      >
+        {loading ? "Memproses..." : "Masuk"}
+      </Button>
+
+      {/* Footer */}
+      <p className="text-center text-sm text-stone-500 mt-4">
+        © {new Date().getFullYear()} SIMRS KEMENHAM
+      </p>
+    </form>
   );
 }

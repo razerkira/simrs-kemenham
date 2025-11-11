@@ -1,7 +1,21 @@
 // src/types/database.ts
 
 export type UserRole = "admin" | "verificator" | "supervisor" | "pegawai";
+export type UserRoles = 1 | 2 | 3 | 4 | 5;
 export type JenisKelamin = "pria" | "wanita";
+
+export interface UserProfile {
+  id: number;
+  name: string;
+  username: string;
+  email: string;
+  role: number;
+  status_aktif: number;
+  last_login: string;
+  created_at: string;
+  updated_at: string;
+}
+
 
 export type Profile = {
   id: string;

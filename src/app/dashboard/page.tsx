@@ -1,165 +1,216 @@
-// src/app/(dashboard)/page.tsx
+"use client";
 
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
-import { Profile } from "@/types/database"; 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ListChecks, PlaneTakeoff } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Users,
+  FileText,
+  PlaneTakeoff,
+  FileClock,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import api from "@/lib/axios";
+import Calendar from "../(cuti)/(dash)/dummy-dashboard/calendar";
 
-type AktivitasPegawai = {
-  id: string;
-  nama: string | null;
-  keterangan: string; 
+// Fungsi konversi tanggal ke zona WIB (GMT+7)
+const toWIB = (dateStr: string) => {
+  const utc = new Date(dateStr + " UTC");
+  return new Date(utc.getTime() + 7 * 60 * 60 * 1000);
 };
 
-async function getCutiHariIni(): Promise<AktivitasPegawai[]> {
-  const supabase = createClient();
-  const today = new Date();
-  const startOfDay = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate()
-  ).toISOString();
+// Dapatkan tanggal hari ini (WIB) dalam format YYYY-MM-DD
+const todayWIB = new Date(Date.now() + 7 * 60 * 60 * 1000)
+  .toISOString()
+  .split("T")[0];
 
-  type CutiQueryResult = {
-    id: string;
-    jenis_cuti: string;
-    profiles: { nama: string | null } | null; 
-  };
+export default function DashboardPage() {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
-  const { data, error } = await (
-    await supabase
-  )
-    .from("pengajuan_cuti")
-    .select(
-      `
-      id,
-      jenis_cuti,
-      profiles:user_id ( nama )
-    `
-    )
-    .eq("status", "disetujui")
-    .lte("tgl_mulai", startOfDay)
-    .gte("tgl_selesai", startOfDay)
-    .returns<CutiQueryResult[]>();
+  // ✅ 1. Fetch Kalender (cuti & dinas)
+  const { data: kalenderData, isLoading: isKalenderLoading } = useQuery({
+    queryKey: ["kalender"],
+    queryFn: async () => {
+      const res = await api.get("/api/v1/kalender");
+      return res.data.data;
+    },
+  });
 
-  if (error) {
-    console.error("Error fetching cuti hari ini:", error);
-    return [];
-  }
+  // ✅ 2. Fetch Statistik
+  const { data: statistikData, isLoading: isStatLoading } = useQuery({
+    queryKey: ["statistik"],
+    queryFn: async () => {
+      const res = await api.get("/api/v1/statistik");
+      return res.data;
+    },
+    refetchInterval: 10000, // 10 detik
+  });
 
-  return data.map((item) => ({
-    id: item.id,
-    nama: item.profiles?.nama ?? "N/A", 
-    keterangan: item.jenis_cuti,
-  }));
-}
+  // ✅ 3. Format statistik
+  const dummyStats = useMemo(() => {
+    const total =
+      statistikData?.reduce((sum: number, s: any) => sum + s.total, 0) || 0;
+    const menunggu =
+      statistikData
+        ?.filter((s: any) => s.status === "Diajukan")
+        .reduce((sum: number, s: any) => sum + s.total, 0) || 0;
+    const disetujui =
+      statistikData
+        ?.filter((s: any) => s.status === "Disetujui")
+        .reduce((sum: number, s: any) => sum + s.total, 0) || 0;
+    const ditolak =
+      statistikData
+        ?.filter((s: any) => s.status === "Ditolak")
+        .reduce((sum: number, s: any) => sum + s.total, 0) || 0;
+    return { total, menunggu, disetujui, ditolak };
+  }, [statistikData]);
 
-async function getDinasHariIni(): Promise<AktivitasPegawai[]> {
-  const supabase = await createClient();
-  const now = new Date().toISOString(); 
+  // ✅ 4. Filter data hari ini (WIB)
+  const todayCuti = useMemo(() => {
+    if (!kalenderData) return [];
+    return kalenderData.filter((item: any) => {
+      const start = toWIB(item.start).toISOString().split("T")[0];
+      const end = toWIB(item.end).toISOString().split("T")[0];
+      return todayWIB >= start && todayWIB <= end && item.type === "cuti";
+    });
+  }, [kalenderData]);
 
-  type DinasQueryResult = {
-    id: string;
-    deskripsi_kegiatan: string;
-    profiles: { nama: string | null } | null; 
-  };
-  
+  const todayDinas = useMemo(() => {
+    if (!kalenderData) return [];
+    return kalenderData.filter((item: any) => {
+      const start = toWIB(item.start).toISOString().split("T")[0];
+      const end = toWIB(item.end).toISOString().split("T")[0];
+      return todayWIB >= start && todayWIB <= end && item.type === "dinas";
+    });
+  }, [kalenderData]);
 
-  const { data, error } = await (
-    await supabase
-  )
-    .from("pengajuan_dinas")
-    .select(
-      `
-      id,
-      deskripsi_kegiatan,
-      profiles:user_id ( nama )
-    `
-    )
-    .eq("status", "disetujui")
-    .lte("tgl_mulai", now)
-    .gte("tgl_selesai", now)
-    
-    .returns<DinasQueryResult[]>();
-
-  if (error) {
-    console.error("Error fetching dinas hari ini:", error);
-    return [];
-  }
-
-  
-  return data.map((item) => ({
-    id: item.id,
-    nama: item.profiles?.nama ?? "N/A", 
-    keterangan: item.deskripsi_kegiatan,
-  }));
-}
-
-export default async function HomePage() {
- 
-  const pegawaiCuti = await getCutiHariIni();
-  const pegawaiDinas = await getDinasHariIni();
+  // ✅ 5. Ubah format untuk Calendar.tsx agar tetap kompatibel dengan UI lama
+  const formattedSubmissions = useMemo(() => {
+    if (!kalenderData) return [];
+    return kalenderData.map((item: any) => ({
+      id: String(item.id),
+      jenis: item.type,
+      nama: item.nama_pegawai,
+      participants: item.type === "dinas" ? [{ nama: item.nama_pegawai }] : [],
+      alasan: item.type === "cuti" ? item.title : undefined,
+      kegiatan: item.type === "dinas" ? item.title : undefined,
+      tanggalMulai: item.start.split(" ")[0],
+      tanggalSelesai: item.end.split(" ")[0],
+      status:
+        item.status.toLowerCase() === "diajukan"
+          ? "pending"
+          : item.status.toLowerCase(),
+    }));
+  }, [kalenderData]);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard Aktivitas Harian</h1>
+    <div className="flex min-h-screen bg-gray-50">
+      <main className="p-6 space-y-6 w-full">
+        {/* Row cards: Cuti & Dinas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" /> Pegawai Cuti Hari Ini (
+                {isKalenderLoading ? "..." : todayCuti.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {isKalenderLoading ? (
+                <p className="text-gray-400 text-sm">Memuat data...</p>
+              ) : todayCuti.length === 0 ? (
+                <p className="text-gray-400 text-sm">Tidak ada pegawai cuti.</p>
+              ) : (
+                todayCuti.map((p: any) => (
+                  <div key={p.id} className="flex justify-between">
+                    <span>{p.nama_pegawai}</span>
+                    <span className="text-sm text-gray-500">{p.title}</span>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Pegawai Cuti Hari Ini
-            </CardTitle>
-            <ListChecks className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {pegawaiCuti.length > 0 ? (
-              <ul className="divide-y divide-gray-200">
-                {pegawaiCuti.map((pegawai) => (
-                  <li key={pegawai.id} className="py-3">
-                    <p className="font-medium">{pegawai.nama}</p>
-                    <p className="text-sm text-gray-600">
-                      {pegawai.keterangan}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Tidak ada pegawai yang cuti hari ini.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PlaneTakeoff className="h-5 w-5" /> Pegawai Dinas Hari Ini (
+                {isKalenderLoading ? "..." : todayDinas.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {isKalenderLoading ? (
+                <p className="text-gray-400 text-sm">Memuat data...</p>
+              ) : todayDinas.length === 0 ? (
+                <p className="text-gray-400 text-sm">
+                  Tidak ada pegawai dinas.
+                </p>
+              ) : (
+                todayDinas.map((p: any) => (
+                  <div key={p.id} className="flex justify-between">
+                    <span>{p.nama_pegawai}</span>
+                    <span className="text-sm text-gray-500">{p.title}</span>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Pegawai Dinas Luar Hari Ini
-            </CardTitle>
-            <PlaneTakeoff className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {pegawaiDinas.length > 0 ? (
-              <ul className="divide-y divide-gray-200">
-                {pegawaiDinas.map((pegawai) => (
-                  <li key={pegawai.id} className="py-3">
-                    <p className="font-medium">{pegawai.nama}</p>
-                    <p className="text-sm text-gray-600">
-                      {pegawai.keterangan}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Tidak ada pegawai yang dinas luar hari ini.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        {/* Row stats card */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="flex items-center justify-between">
+              <FileText className="h-6 w-6" />
+              <div className="text-right">
+                <div className="text-xl font-bold">
+                  {isStatLoading ? "..." : dummyStats.total}
+                </div>
+                <div className="text-sm text-gray-500">Total Pengajuan</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center justify-between">
+              <FileClock className="h-6 w-6" />
+              <div className="text-right">
+                <div className="text-xl font-bold">
+                  {isStatLoading ? "..." : dummyStats.menunggu}
+                </div>
+                <div className="text-sm text-gray-500">Menunggu</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center justify-between">
+              <CheckCircle className="h-6 w-6" />
+              <div className="text-right">
+                <div className="text-xl font-bold">
+                  {isStatLoading ? "..." : dummyStats.disetujui}
+                </div>
+                <div className="text-sm text-gray-500">Disetujui</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center justify-between">
+              <XCircle className="h-6 w-6" />
+              <div className="text-right">
+                <div className="text-xl font-bold">
+                  {isStatLoading ? "..." : dummyStats.ditolak}
+                </div>
+                <div className="text-sm text-gray-500">Ditolak</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Calendar */}
+        <Calendar submissions={formattedSubmissions} />
+      </main>
     </div>
   );
 }

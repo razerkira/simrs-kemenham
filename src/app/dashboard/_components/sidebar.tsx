@@ -1,11 +1,11 @@
 // src/app/(dashboard)/_components/sidebar.tsx
 "use client";
 
-import { Profile } from "@/types/database";
+import { Profile, UserProfile } from "@/types/database";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button"; 
+import { Button } from "@/components/ui/button";
 import {
   ChevronsLeft,
   ChevronsRight,
@@ -52,21 +52,17 @@ function SidebarLink({
 }
 
 interface SidebarProps {
-  profile: Profile;
+  profile: UserProfile | Profile;
   isCollapsed: boolean;
-  toggleSidebar: () => void; 
+  toggleSidebar: () => void;
 }
 
-export default function Sidebar({
-  profile,
-  isCollapsed,
-}: 
-SidebarProps) {
+export default function Sidebar({ profile, isCollapsed }: SidebarProps) {
   const role = profile.role;
-  const isAdmin = role === "admin";
-  const isVerificator = role === "verificator" || isAdmin;
-  const isSupervisor = role === "supervisor" || isAdmin;
-  const isPegawai = role === "pegawai" || isVerificator || isSupervisor;
+  const isAdmin = role === 1;
+  const isVerificator = role === 2 || isAdmin;
+  const isSupervisor = role === 3 || isAdmin;
+  const isPegawai = role === 5 || isVerificator || isSupervisor;
 
   return (
     <aside
@@ -110,11 +106,15 @@ SidebarProps) {
           )}
           <ul className="space-y-1">
             <li>
-              <SidebarLink href="/dashboard" isCollapsed={isCollapsed} icon={Home}>
+              <SidebarLink
+                href="/dashboard"
+                isCollapsed={isCollapsed}
+                icon={Home}
+              >
                 Dashboard
               </SidebarLink>
             </li>
-            <li>
+            {/* <li>
               <SidebarLink
                 href="/dashboard/pengaturan"
                 isCollapsed={isCollapsed}
@@ -122,7 +122,7 @@ SidebarProps) {
               >
                 Pengaturan Akun
               </SidebarLink>
-            </li>
+            </li> */}
           </ul>
         </div>
         {isPegawai && (
@@ -144,7 +144,7 @@ SidebarProps) {
               </li>
               <li>
                 <SidebarLink
-                  href="dashboard/pengajuan-dinas"
+                  href="/dashboard/pengajuan-dinas"
                   isCollapsed={isCollapsed}
                   icon={PlaneTakeoff}
                 >
@@ -153,7 +153,7 @@ SidebarProps) {
               </li>
               <li>
                 <SidebarLink
-                  href="dashboard/status-pengajuan"
+                  href="/dashboard/status-pengajuan"
                   isCollapsed={isCollapsed}
                   icon={FileClock}
                 >
@@ -163,7 +163,7 @@ SidebarProps) {
             </ul>
           </div>
         )}
-        {isVerificator && (
+        {/* {isVerificator && (
           <div>
             {!isCollapsed && (
               <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-gray-400">
@@ -173,7 +173,7 @@ SidebarProps) {
             <ul className="space-y-1">
               <li>
                 <SidebarLink
-                  href="dashboard/verifikasi/cuti"
+                  href="/dashboard/verifikasi/cuti"
                   isCollapsed={isCollapsed}
                   icon={UserCheck}
                 >
@@ -182,7 +182,7 @@ SidebarProps) {
               </li>
               <li>
                 <SidebarLink
-                  href="dashboard/verifikasi/dinas"
+                  href="/dashboard/verifikasi/dinas"
                   isCollapsed={isCollapsed}
                   icon={UserCheck}
                 >
@@ -202,7 +202,7 @@ SidebarProps) {
             <ul className="space-y-1">
               <li>
                 <SidebarLink
-                  href="dashboard/persetujuan/cuti"
+                  href="/dashboard/persetujuan/cuti"
                   isCollapsed={isCollapsed}
                   icon={FileCheck}
                 >
@@ -211,7 +211,7 @@ SidebarProps) {
               </li>
               <li>
                 <SidebarLink
-                  href="dashboard/persetujuan/dinas"
+                  href="/dashboard/persetujuan/dinas"
                   isCollapsed={isCollapsed}
                   icon={FileCheck}
                 >
@@ -220,7 +220,7 @@ SidebarProps) {
               </li>
             </ul>
           </div>
-        )}
+        )} */}
         {isAdmin && (
           <div>
             {!isCollapsed && (
@@ -231,7 +231,7 @@ SidebarProps) {
             <ul className="space-y-1">
               <li>
                 <SidebarLink
-                  href="dashboard/admin/manajemen-pegawai"
+                  href="/dashboard/admin/manajemen-pegawai"
                   isCollapsed={isCollapsed}
                   icon={Users}
                 >
@@ -240,7 +240,7 @@ SidebarProps) {
               </li>
               <li>
                 <SidebarLink
-                  href="dashboard/admin/buat-akun"
+                  href="/dashboard/admin/buat-akun"
                   isCollapsed={isCollapsed}
                   icon={UserPlus}
                 >
@@ -251,7 +251,6 @@ SidebarProps) {
           </div>
         )}
       </nav>
-
     </aside>
   );
 }

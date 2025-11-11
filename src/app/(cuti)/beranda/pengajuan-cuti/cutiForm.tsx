@@ -1,60 +1,152 @@
 "use client";
 
 import React, { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast, Toaster } from "sonner";
 import { ArrowLeft, Send, Upload, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import api from "@/lib/axios";
+
+interface Pegawai {
+  id: number;
+  nip: string;
+  nama: string;
+  jabatan: string;
+  email: string;
+  instansi_id: number;
+  unit_id: number;
+}
 
 export default function CutiForm() {
   const [nip, setNip] = useState("");
-  const [nama, setNama] = useState("");
+  const [pegawai, setPegawai] = useState<Pegawai | null>(null);
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [tanggalSelesai, setTanggalSelesai] = useState("");
   const [alasan, setAlasan] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [nipValid, setNipValid] = useState(false);
+  const [jenisCuti, setJenisCuti] = useState("");
+  const [searchTriggered, setSearchTriggered] = useState(false);
 
-  // 🔹 Simulasi cek NIP
-  const handleCekNip = () => {
-    if (nip.trim() === "") {
+  const {
+    data: dataPegawai,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ["ceknip", nip],
+    queryFn: async () => {
+      const res = await api.get(`/api/v1/ceknip?search=${nip}`);
+      return res.data;
+    },
+    enabled: false,
+  });
+
+  const handleCekNip = async () => {
+    if (!nip.trim()) {
       toast.error("Harap masukkan NIP terlebih dahulu.");
       return;
     }
 
-    // Dummy data
-    if (nip === "123456789") {
-      setNama("Budi Santoso");
-      setNipValid(true);
-      toast.success("Data pegawai ditemukan!");
-    } else {
-      setNama("");
-      setNipValid(false);
-      toast.error("NIP tidak ditemukan!");
+    setSearchTriggered(true);
+    try {
+      const { data } = await refetch();
+      if (data?.data?.length > 0) {
+        setPegawai(data.data[0]);
+        toast.success("Data pegawai ditemukan!");
+      } else {
+        setPegawai(null);
+        toast.error("NIP tidak ditemukan!");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Terjadi kesalahan saat mencari NIP.");
     }
   };
 
+  const { mutate: submitCuti, isPending } = useMutation({
+    mutationFn: async () => {
+      if (!pegawai) throw new Error("Pegawai belum valid.");
+      const formData = new FormData();
+      formData.append("pegawai_id", String(pegawai.id));
+      formData.append("tanggal_mulai", tanggalMulai);
+      formData.append("tanggal_selesai", tanggalSelesai);
+      formData.append("keterangan", alasan);
+      formData.append("jenis_cuti", jenisCuti);
+      if (file) formData.append("lampiran", file);
+
+      const res = await api.post("/api/v1/cuti/store", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Pengajuan cuti berhasil dikirim!");
+      setPegawai(null);
+      setNip("");
+      setTanggalMulai("");
+      setTanggalSelesai("");
+      setAlasan("");
+      setJenisCuti("");
+      setFile(null);
+      setSearchTriggered(false);
+    },
+    onError: (error: any) => {
+      console.error(error);
+      toast.error(
+        error?.response?.data?.message || "Gagal mengirim pengajuan cuti."
+      );
+    },
+  });
+
+  // ✅ Hitung tanggal hari ini dalam zona WIB (GMT+7)
+  const todayWIB = new Date(Date.now() + 7 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
+
+  // ✅ Hitung max 1 tahun ke depan
+  const maxDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nipValid) {
-      toast.error("NIP belum valid, harap cek terlebih dahulu.");
+
+    if (!pegawai) {
+      toast.error("Harap cek NIP terlebih dahulu!");
       return;
     }
-    if (!tanggalMulai || !tanggalSelesai || !alasan) {
+    if (!tanggalMulai || !tanggalSelesai || !alasan || !jenisCuti) {
       toast.error("Harap isi semua field yang wajib diisi.");
       return;
     }
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Pengajuan cuti berhasil dikirim (dummy)");
-    }, 1000);
+    // ✅ Validasi tanggal (WIB)
+    const now = new Date();
+    const wibNow = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+    const start = new Date(`${tanggalMulai}T00:00:00+07:00`);
+    const end = new Date(`${tanggalSelesai}T23:59:59+07:00`);
+
+    if (start < new Date(wibNow.toDateString())) {
+      toast.error("Tanggal mulai cuti tidak boleh sebelum hari ini (WIB).");
+      return;
+    }
+
+    if (end < start) {
+      toast.error("Tanggal selesai harus setelah tanggal mulai.");
+      return;
+    }
+
+    const durasi = (end.getTime() - start.getTime()) / (1000 * 3600 * 24) + 1;
+    if (durasi > 30) {
+      toast.error("Durasi cuti tidak boleh lebih dari 30 hari.");
+      return;
+    }
+
+    submitCuti();
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-4">
+    <div className="px-4">
       <Toaster />
       <div className="max-w-2xl mx-auto">
         <Link href="/">
@@ -83,8 +175,7 @@ export default function CutiForm() {
                   value={nip}
                   onChange={(e) => {
                     setNip(e.target.value);
-                    setNipValid(false);
-                    setNama("");
+                    setPegawai(null);
                   }}
                   required
                   placeholder="Masukkan NIP Anda"
@@ -94,9 +185,16 @@ export default function CutiForm() {
                   type="button"
                   variant="outline"
                   onClick={handleCekNip}
+                  disabled={isFetching}
                   className="whitespace-nowrap"
                 >
-                  <Search className="mr-2 h-4 w-4" /> Cek NIP
+                  {isFetching ? (
+                    "Mencari..."
+                  ) : (
+                    <>
+                      <Search className="mr-2 h-4 w-4" /> Cek NIP
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -108,11 +206,33 @@ export default function CutiForm() {
               </label>
               <input
                 id="nama"
-                value={nama}
+                value={pegawai?.nama ?? ""}
                 readOnly
                 placeholder="Otomatis terisi setelah cek NIP"
                 className="flex h-10 w-full rounded-md border border-input bg-gray-50 px-3 py-2 text-sm text-gray-700"
               />
+            </div>
+
+            {/* Jenis Cuti */}
+            <div className="space-y-2">
+              <label htmlFor="jenisCuti" className="text-sm font-medium">
+                Jenis Cuti *
+              </label>
+              <select
+                id="jenisCuti"
+                value={jenisCuti}
+                onChange={(e) => setJenisCuti(e.target.value)}
+                disabled={!pegawai}
+                required
+                className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">Pilih Jenis Cuti</option>
+                <option value="Sakit">Cuti Sakit</option>
+                <option value="Melahirkan">Cuti Melahirkan</option>
+                <option value="Tahunan">Cuti Tahunan</option>
+                <option value="Penting">Cuti Penting</option>
+                <option value="Lainnya">Cuti Lainnya</option>
+              </select>
             </div>
 
             {/* Tanggal */}
@@ -125,10 +245,17 @@ export default function CutiForm() {
                   type="date"
                   id="tanggalMulai"
                   required
-                  disabled={!nipValid}
+                  disabled={!pegawai}
                   value={tanggalMulai}
-                  onChange={(e) => setTanggalMulai(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onChange={(e) => {
+                    setTanggalMulai(e.target.value);
+                    if (tanggalSelesai && e.target.value > tanggalSelesai) {
+                      setTanggalSelesai("");
+                    }
+                  }}
+                  min={todayWIB}
+                  max={maxDate}
+                  className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm disabled:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
               <div className="space-y-2">
@@ -139,49 +266,51 @@ export default function CutiForm() {
                   type="date"
                   id="tanggalSelesai"
                   required
-                  disabled={!nipValid}
+                  disabled={!pegawai}
                   value={tanggalSelesai}
                   onChange={(e) => setTanggalSelesai(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  min={tanggalMulai || todayWIB}
+                  max={maxDate}
+                  className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm disabled:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
             </div>
 
-            {/* Alasan */}
+            {/* Keterangan */}
             <div className="space-y-2">
               <label htmlFor="alasan" className="text-sm font-medium">
-                Alasan *
+                Keterangan *
               </label>
               <textarea
                 id="alasan"
                 required
-                disabled={!nipValid}
+                disabled={!pegawai}
                 value={alasan}
                 onChange={(e) => setAlasan(e.target.value)}
-                placeholder="Jelaskan alasan pengajuan Anda"
+                placeholder="Jelaskan alasan pengajuan cuti Anda"
                 rows={4}
-                className="flex min-h-[80px] w-full rounded-md border border-input px-3 py-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-h-[80px] w-full rounded-md border border-input px-3 py-2 text-sm disabled:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
 
-            {/* File Upload */}
+            {/* Upload */}
             <div className="space-y-2">
               <label htmlFor="dataDukung" className="text-sm font-medium">
-                Data Pendukung
+                Lampiran (PDF/Gambar)
               </label>
               <div className="relative">
                 <input
                   type="file"
                   id="dataDukung"
                   accept=".pdf,image/*"
-                  disabled={!nipValid}
+                  disabled={!pegawai}
                   onChange={(e) => setFile(e.target.files?.[0] || null)}
                   className="hidden"
                 />
                 <label
                   htmlFor="dataDukung"
                   className={`flex items-center justify-center w-full h-10 px-3 py-2 text-sm border border-input rounded-md cursor-pointer transition ${
-                    nipValid
+                    pegawai
                       ? "hover:bg-accent"
                       : "bg-gray-100 text-gray-400 cursor-not-allowed"
                   }`}
@@ -189,19 +318,20 @@ export default function CutiForm() {
                   <Upload className="mr-2 h-4 w-4" /> Pilih file (PDF/Gambar)
                 </label>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                File akan disimpan setelah integrasi backend diaktifkan.
-              </p>
+              {file && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  File dipilih: <strong>{file.name}</strong>
+                </p>
+              )}
             </div>
 
-            {/* Tombol Submit */}
             <Button
               type="submit"
-              disabled={!nipValid || loading}
+              disabled={!pegawai || isPending}
               className="inline-flex items-center justify-center text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 rounded-md px-8 w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               <Send className="mr-2 h-5 w-5" />{" "}
-              {loading ? "Mengirim..." : "Kirim Pengajuan Cuti"}
+              {isPending ? "Mengirim..." : "Kirim Pengajuan Cuti"}
             </Button>
           </form>
         </div>

@@ -1,64 +1,86 @@
-// src/app/(dashboard)/admin/manajemen-pegawai/page.tsx
+"use client";
 
-import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { Profile } from "@/types/database";
+import { useEffect, useState } from "react";
+import { useAuthStore } from "@/store/auth";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/axios";
 import ManajemenPegawaiTable from "./manajemen-pegawai-table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
-async function getUserProfile(userId: string): Promise<Profile | null> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  if (error) return null;
-  return data;
+interface PegawaiResponse {
+  current_page: number;
+  data: any[];
+  last_page: number;
+  total: number;
 }
 
-async function getAllPegawai(): Promise<Profile[]> {
-  const supabase = await createClient();
+export default function ManajemenPegawaiPage() {
+  const { user } = useAuthStore();
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .order("nama", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching all pegawai:", error);
-    return [];
-  }
-
-  return data;
-}
-
-export default async function ManajemenPegawaiPage() {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    redirect("/login");
-  }
-
-  const userProfile = await getUserProfile(session.user.id);
-
-  if (userProfile?.role !== "admin") {
+  if (user?.role !== 1) {
     redirect("/");
   }
 
-  const dataPegawai = await getAllPegawai();
+  const fetchPegawai = async (): Promise<PegawaiResponse> => {
+    const res = await api.get(`/api/v1/pegawai`, {
+      params: { page, search },
+    });
+    return res.data;
+  };
+
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["pegawai", page, search],
+    queryFn: fetchPegawai,
+    keepPreviousData: true,
+  });
+
+  useEffect(() => {
+    refetch();
+  }, [page, search]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
-      <h1 className="mb-6 text-3xl font-bold">Manajemen Data Pegawai</h1>
-      <p className="mb-8 text-gray-600">
-        Kelola data profil, akun, dan role untuk semua pegawai Kemenham.
-      </p>
+    <div className="mx-auto w-full max-w-7xl space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Manajemen Data Pegawai</h1>
+          <p className="text-gray-600">
+            Kelola data profil, akun, dan role untuk seluruh pegawai Kemenham.
+          </p>
+        </div>
 
-      <ManajemenPegawaiTable dataPegawai={dataPegawai} />
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Cari nama, email, atau NIP..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-[250px]"
+          />
+          <Button
+            variant="secondary"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <Search className="h-4 w-4 mr-2" />
+            Cari
+          </Button>
+        </div>
+      </div>
+
+      <ManajemenPegawaiTable
+        dataPegawai={data?.data ?? []}
+        loading={isLoading}
+        pagination={{
+          currentPage: data?.current_page ?? 1,
+          lastPage: data?.last_page ?? 1,
+          total: data?.total ?? 0,
+          onPageChange: (p) => setPage(p),
+        }}
+      />
     </div>
   );
 }
