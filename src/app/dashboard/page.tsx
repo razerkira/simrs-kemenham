@@ -34,7 +34,9 @@ export default function DashboardPage() {
   const { data: kalenderData, isLoading: isKalenderLoading } = useQuery({
     queryKey: ["kalender"],
     queryFn: async () => {
-      const res = await api.get("/api/v1/kalender");
+      const res = await api.get("/api/v1/kalender", {
+        params: { start_date: "2025-11-01", end_date: "2028-12-31" },
+      });
       return res.data.data;
     },
   });
