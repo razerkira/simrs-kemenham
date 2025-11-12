@@ -1,220 +1,237 @@
-// src/app/(dashboard)/pengajuan-cuti/cuti-form.tsx
-
 "use client";
 
-import { useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { id as localeID } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import { cutiSchema } from "./validation";
-import { createPengajuanCuti } from "./actions";
-import { CutiFormState } from "./types";
-
+import React, { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { toast, Toaster } from "sonner";
+import { Send, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-type CutiFormValues = z.infer<typeof cutiSchema>;
+import api from "@/lib/axios";
+import { useAuthStore } from "@/store/auth";
 
 export default function CutiForm() {
-  const [isPending, startTransition] = useTransition();
+  const { user } = useAuthStore(); // Ambil data user dari Zustand
+  const [tanggalMulai, setTanggalMulai] = useState("");
+  const [tanggalSelesai, setTanggalSelesai] = useState("");
+  const [alasan, setAlasan] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [jenisCuti, setJenisCuti] = useState("");
 
-  const form = useForm<CutiFormValues>({
-    resolver: zodResolver(cutiSchema),
+  // ✅ Hitung tanggal hari ini (WIB)
+  const todayWIB = new Date(Date.now() + 7 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
+  const maxDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
+
+  const { mutate: submitCuti, isPending } = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("User belum login.");
+
+      const formData = new FormData();
+      formData.append("pegawai_id", String(user?.id));
+      formData.append("tanggal_mulai", tanggalMulai);
+      formData.append("tanggal_selesai", tanggalSelesai);
+      formData.append("keterangan", alasan);
+      formData.append("jenis_cuti", jenisCuti);
+      if (file) formData.append("lampiran", file);
+
+      const res = await api.post("/api/v1/cuti/store", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Pengajuan cuti berhasil dikirim!");
+      setTanggalMulai("");
+      setTanggalSelesai("");
+      setAlasan("");
+      setJenisCuti("");
+      setFile(null);
+    },
+    onError: (error: any) => {
+      console.error(error);
+      toast.error(
+        error?.response?.data?.message || "Gagal mengirim pengajuan cuti."
+      );
+    },
   });
 
-  const onSubmit = (data: CutiFormValues) => {
-    const formData = new FormData();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
-    formData.append("jenis_cuti", data.jenis_cuti);
-    formData.append("tgl_mulai", data.tgl_mulai.toISOString());
-    formData.append("tgl_selesai", data.tgl_selesai.toISOString());
-
-    if (data.dokumen) {
-      formData.append("dokumen", data.dokumen);
+    if (!tanggalMulai || !tanggalSelesai || !alasan || !jenisCuti) {
+      toast.error("Harap isi semua field wajib.");
+      return;
     }
 
-    startTransition(async () => {
-      const result = (await createPengajuanCuti(formData)) as CutiFormState;
+    const start = new Date(`${tanggalMulai}T00:00:00+07:00`);
+    const end = new Date(`${tanggalSelesai}T23:59:59+07:00`);
+    if (end < start) {
+      toast.error("Tanggal selesai harus setelah tanggal mulai.");
+      return;
+    }
 
-      if (result && !result.success) {
-        toast.error(result.message);
-        if (result.errors) {
-          Object.keys(result.errors).forEach((key) => {
-            const field = key as keyof CutiFormValues;
-            const messages = result.errors?.[field];
-            if (messages) {
-              form.setError(field, {
-                type: "server",
-                message: messages.join(", "),
-              });
-            }
-          });
-        }
-      }
-    });
+    const durasi = (end.getTime() - start.getTime()) / (1000 * 3600 * 24) + 1;
+    if (durasi > 30) {
+      toast.error("Durasi cuti tidak boleh lebih dari 30 hari.");
+      return;
+    }
+
+    submitCuti();
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Detail Pengajuan</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="jenis_cuti"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Jenis Cuti / Alasan</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Contoh: Cuti Tahunan, Cuti Sakit..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Tuliskan jenis cuti beserta alasan singkat jika diperlukan.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className="px-4">
+      <Toaster />
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">
+            Form Pengajuan Cuti
+          </h1>
 
-            <FormField
-              control={form.control}
-              name="tgl_mulai"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Tanggal Mulai Cuti</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP", { locale: localeID })
-                          ) : (
-                            <span>Pilih tanggal</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* NIP */}
+            {/* <div className="space-y-2">
+              <label htmlFor="nip" className="text-sm font-medium">
+                NIP
+              </label>
+              <input
+                id="nip"
+                value={user?.nip ?? ""}
+                disabled
+                className="flex h-10 w-full rounded-md border border-input bg-gray-100 px-3 py-2 text-sm text-gray-700"
+              />
+            </div> */}
 
-            <FormField
-              control={form.control}
-              name="tgl_selesai"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Tanggal Selesai Cuti</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP", { locale: localeID })
-                          ) : (
-                            <span>Pilih tanggal</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Nama */}
+            <div className="space-y-2">
+              <label htmlFor="nama" className="text-sm font-medium">
+                Nama Lengkap
+              </label>
+              <input
+                id="nama"
+                value={user?.name ?? ""}
+                disabled
+                className="flex h-10 w-full rounded-md border border-input bg-gray-100 px-3 py-2 text-sm text-gray-700"
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="dokumen"
-              render={({ field: { onChange, onBlur, name, ref } }) => (
-                <FormItem>
-                  <FormLabel>Dokumen Pendukung (Opsional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        onChange(file);
-                      }}
-                      onBlur={onBlur}
-                      name={name}
-                      ref={ref}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Upload file .pdf, .doc, .docx, .jpg, atau .png. Maks 5MB.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Jenis Cuti */}
+            <div className="space-y-2">
+              <label htmlFor="jenisCuti" className="text-sm font-medium">
+                Jenis Cuti *
+              </label>
+              <select
+                id="jenisCuti"
+                value={jenisCuti}
+                onChange={(e) => setJenisCuti(e.target.value)}
+                required
+                className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">Pilih Jenis Cuti</option>
+                <option value="Sakit">Cuti Sakit</option>
+                <option value="Melahirkan">Cuti Melahirkan</option>
+                <option value="Tahunan">Cuti Tahunan</option>
+                <option value="Penting">Cuti Penting</option>
+                <option value="Lainnya">Cuti Lainnya</option>
+              </select>
+            </div>
 
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Mengajukan..." : "Ajukan Cuti"}
+            {/* Tanggal */}
+            <div className="grid lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="tanggalMulai" className="text-sm font-medium">
+                  Tanggal Mulai *
+                </label>
+                <input
+                  type="date"
+                  id="tanggalMulai"
+                  required
+                  value={tanggalMulai}
+                  onChange={(e) => {
+                    setTanggalMulai(e.target.value);
+                    if (tanggalSelesai && e.target.value > tanggalSelesai) {
+                      setTanggalSelesai("");
+                    }
+                  }}
+                  min={todayWIB}
+                  max={maxDate}
+                  className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="tanggalSelesai" className="text-sm font-medium">
+                  Tanggal Selesai *
+                </label>
+                <input
+                  type="date"
+                  id="tanggalSelesai"
+                  required
+                  value={tanggalSelesai}
+                  onChange={(e) => setTanggalSelesai(e.target.value)}
+                  min={tanggalMulai || todayWIB}
+                  max={maxDate}
+                  className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+            </div>
+
+            {/* Keterangan */}
+            <div className="space-y-2">
+              <label htmlFor="alasan" className="text-sm font-medium">
+                Keterangan *
+              </label>
+              <textarea
+                id="alasan"
+                required
+                value={alasan}
+                onChange={(e) => setAlasan(e.target.value)}
+                placeholder="Jelaskan alasan pengajuan cuti Anda"
+                rows={4}
+                className="flex min-h-[80px] w-full rounded-md border border-input px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+
+            {/* Upload */}
+            <div className="space-y-2">
+              <label htmlFor="dataDukung" className="text-sm font-medium">
+                Lampiran (PDF/Gambar)
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  id="dataDukung"
+                  accept=".pdf,image/*"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="dataDukung"
+                  className="flex items-center justify-center w-full h-10 px-3 py-2 text-sm border border-input rounded-md cursor-pointer hover:bg-accent transition"
+                >
+                  <Upload className="mr-2 h-4 w-4" /> Pilih file (PDF/Gambar)
+                </label>
+              </div>
+              {file && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  File dipilih: <strong>{file.name}</strong>
+                </p>
+              )}
+            </div>
+
+            {/* Submit */}
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="inline-flex items-center justify-center text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 rounded-md px-8 w-full disabled:bg-gray-400"
+            >
+              <Send className="mr-2 h-5 w-5" />
+              {isPending ? "Mengirim..." : "Kirim Pengajuan Cuti"}
             </Button>
           </form>
-        </Form>
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+    </div>
   );
 }

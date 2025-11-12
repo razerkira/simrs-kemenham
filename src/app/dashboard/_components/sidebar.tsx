@@ -163,7 +163,7 @@ export default function Sidebar({ profile, isCollapsed }: SidebarProps) {
             </ul>
           </div>
         )}
-        {/* {isVerificator && (
+        {isVerificator && (
           <div>
             {!isCollapsed && (
               <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-gray-400">
@@ -192,7 +192,7 @@ export default function Sidebar({ profile, isCollapsed }: SidebarProps) {
             </ul>
           </div>
         )}
-        {isSupervisor && (
+        {/* {isSupervisor && (
           <div>
             {!isCollapsed && (
               <h3 className="mb-1 px-2 text-xs font-semibold uppercase text-gray-400">
@@ -245,6 +245,15 @@ export default function Sidebar({ profile, isCollapsed }: SidebarProps) {
                   icon={UserPlus}
                 >
                   Buat Akun Pegawai
+                </SidebarLink>
+              </li>
+              <li>
+                <SidebarLink
+                  href="/dashboard/admin/users"
+                  isCollapsed={isCollapsed}
+                  icon={Users}
+                >
+                  Manajemen User
                 </SidebarLink>
               </li>
             </ul>

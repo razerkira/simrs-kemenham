@@ -5,7 +5,7 @@ import { Suspense } from "react";
 
 export default function LoginPage() {
   return (
-    <div className="flex items-center justify-center bg-gray-50 p-4 pt-8">
+    <div className="flex items-center justify-center  p-4 pt-8 xl:pt-12">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
         <h1 className="mb-6 text-center text-3xl font-bold text-gray-900">
           SIMRS Kemenham

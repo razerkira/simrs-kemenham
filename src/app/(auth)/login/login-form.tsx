@@ -83,7 +83,7 @@ export default function LoginForm() {
       <Button
         type="submit"
         disabled={loading}
-        className="w-full h-11 rounded-xl text-white text-base font-medium transition-all"
+        className="w-full h-11 rounded-xl text-white text-base font-medium transition-all cursor-pointer"
       >
         {loading ? "Memproses..." : "Masuk"}
       </Button>
