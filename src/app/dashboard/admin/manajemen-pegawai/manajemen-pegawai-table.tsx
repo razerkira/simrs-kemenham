@@ -22,17 +22,9 @@ import {
 } from "@/components/ui/card";
 import DialogEditPegawai from "./dialog-edit-pegawai";
 import { cn } from "@/lib/utils";
+import { Pegawai, Profile, UserProfile } from "@/types/database";
 
-interface Pegawai {
-  id: number;
-  nama: string;
-  nip: string;
-  email: string;
-  jabatan: string;
-  instansi?: { nama_instansi: string };
-  unit?: { nama_unit: string };
-  user: { role: number };
-}
+
 
 interface PaginationProps {
   currentPage: number;
@@ -66,7 +58,7 @@ export default function ManajemenPegawaiTable({
   pagination,
 }: ManajemenPegawaiTableProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
+  const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | UserProfile | Profile | null>(null);
 
   const handleOpenEditDialog = (pegawai: Pegawai) => {
     setSelectedPegawai(pegawai);

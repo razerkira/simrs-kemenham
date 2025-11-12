@@ -5,8 +5,10 @@ export type UserRoles = 1 | 2 | 3 | 4 | 5;
 export type JenisKelamin = "pria" | "wanita";
 
 export interface UserProfile {
-  id: number;
-  name: string;
+  id: number | string;
+  name: string | null;
+  nama: string | null;
+  nip: string | null;
   username: string;
   email: string;
   role: number;
@@ -14,14 +16,19 @@ export interface UserProfile {
   last_login: string;
   created_at: string;
   updated_at: string;
+  jabatan: string | null;
+  pangkat_golongan: string | null;
+  unit_kerja: string | null;
+  jenis_kelamin: JenisKelamin | null;
 }
 
 
 export type Profile = {
-  id: string;
+  id: string | number;
   created_at: string;
   nip: string | null;
   nama: string | null;
+  name: string | null;
   email: string | null;
   jabatan: string | null;
   pangkat_golongan: string | null;
@@ -29,6 +36,21 @@ export type Profile = {
   jenis_kelamin: JenisKelamin | null;
   role: UserRole | null;
 };
+
+export interface Pegawai {
+  id: number;
+  nama: string;
+  name: string | null;
+  nip: string;
+  email: string;
+  jabatan: string;
+  role: number | null;
+  instansi?: { nama_instansi: string };
+  unit?: { nama_unit: string };
+  user: { role: number };
+  unit_kerja: string | null;
+  pangkat_golongan: string | null;
+}
 
 export type PengajuanStatus =
   | "menunggu_verifikasi"

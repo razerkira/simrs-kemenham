@@ -64,7 +64,7 @@ const Calendar: React.FC<CalendarProps> = ({ submissions }) => {
 
   const getSubmissionsForDate = (date: string) =>
     submissions.filter(
-      (s) => date >= s.tanggalMulai && date <= s.tanggalSelesai
+      (s: any) => date >= s.tanggalMulai && date <= s.tanggalSelesai
     );
 
   const previousMonth = () =>
@@ -170,32 +170,32 @@ const Calendar: React.FC<CalendarProps> = ({ submissions }) => {
 
           // Gunakan filter agar bisa dihitung
           const cutiApproved = daySubs.filter(
-            (s) =>
+            (s: any) =>
               s.jenis === "cuti" && s.status.toLowerCase().includes("setuju")
           ).length;
           const cutiPending = daySubs.filter(
-            (s) =>
+            (s: any) =>
               s.jenis === "cuti" &&
               !s.status.toLowerCase().includes("setuju") &&
               !s.status.toLowerCase().includes("tolak")
           ).length;
           const cutiRejected = daySubs.filter(
-            (s) =>
+            (s: any) =>
               s.jenis === "cuti" && s.status.toLowerCase().includes("tolak")
           ).length;
 
           const dinasApproved = daySubs.filter(
-            (s) =>
+            (s:any) =>
               s.jenis === "dinas" && s.status.toLowerCase().includes("setuju")
           ).length;
           const dinasPending = daySubs.filter(
-            (s) =>
+            (s: any) =>
               s.jenis === "dinas" &&
               !s.status.toLowerCase().includes("setuju") &&
               !s.status.toLowerCase().includes("tolak")
           ).length;
           const dinasRejected = daySubs.filter(
-            (s) =>
+            (s: any) =>
               s.jenis === "dinas" && s.status.toLowerCase().includes("tolak")
           ).length;
 
@@ -311,17 +311,17 @@ const Calendar: React.FC<CalendarProps> = ({ submissions }) => {
               if (!hasSubs) return null;
               const labelList: string[] = [];
               const cutiApproved = d.daySubs.find(
-                (s) =>
+                (s: any) =>
                   s.jenis === "cuti" &&
                   s.status.toLowerCase().includes("setuju")
               );
               const cutiPending = d.daySubs.find(
-                (s) =>
+                (s: any) =>
                   s.jenis === "cuti" &&
                   s.status.toLowerCase().includes("pengajuan")
               );
               const dinasApproved = d.daySubs.find(
-                (s) =>
+                (s: any) =>
                   s.jenis === "dinas" &&
                   s.status.toLowerCase().includes("setuju")
               );
@@ -346,7 +346,7 @@ const Calendar: React.FC<CalendarProps> = ({ submissions }) => {
                     <h4 className="font-semibold mb-2 text-sm">
                       Detail {d.day} {monthNames[currentDate.getMonth()]}
                     </h4>
-                    {d.daySubs.map((s, i) => {
+                    {d.daySubs.map((s :any, i: any) => {
                       const statusInfo = getStatusInfo(s.status);
                       return (
                         <div

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-import { Profile } from "@/types/database";
+import { Profile, UserProfile } from "@/types/database";
 import { updateProfile, FormState } from "./actions";
 import { profileSchema, ProfileFormValues } from "./validation";
 
@@ -24,7 +24,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface SettingsFormProps {
-  profile: Profile;
+  profile: UserProfile | Profile;
 }
 
 export default function SettingsForm({ profile }: SettingsFormProps) {
@@ -47,7 +47,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
   const onSubmit = (data: ProfileFormValues) => {
     startTransition(async () => {
-      const result = await updateProfile({ id: profile.id, ...data });
+      const result = await updateProfile({ id: profile.id.toString(), ...data });
 
       if (result.success) {
         toast.success(result.message);

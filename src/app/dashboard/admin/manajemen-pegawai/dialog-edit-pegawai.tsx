@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 
-import { Profile, UserRole } from "@/types/database";
+import { Pegawai, Profile, UserProfile, UserRole } from "@/types/database";
 import { updatePegawaiProfile, adminUpdateUserPassword } from "./actions";
 import { EditFormState } from "./types";
 import { editProfileSchema } from "./validation";
@@ -43,9 +43,10 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
+import { returnRole } from "@/lib/utils";
 
 interface DialogEditPegawaiProps {
-  pegawai: Profile | null;
+  pegawai: UserProfile | Profile | Pegawai | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -64,17 +65,32 @@ export default function DialogEditPegawai({
 
   useEffect(() => {
     if (pegawai) {
+      let initialRole: UserRole;
+  
+      if (pegawai.role !== null && typeof pegawai.role === 'number') {
+        // Jika tipe data adalah NUMBER (dari UserProfile)
+        initialRole = returnRole(pegawai.role);
+      } else if (pegawai.role !== null && typeof pegawai.role === 'string') {
+        // Jika tipe data adalah STRING (dari Profile)
+        initialRole = pegawai.role;
+      } else {
+        // Jika null atau undefined
+        initialRole = "pegawai";
+      }
+  
       form.reset({
-        nama: pegawai.nama ?? "",
+        nama: pegawai.name ?? "",
         nip: pegawai.nip ?? "",
         jabatan: pegawai.jabatan ?? "",
         pangkat_golongan: pegawai.pangkat_golongan ?? "",
         unit_kerja: pegawai.unit_kerja ?? "",
-        role: pegawai.role ?? "pegawai",
+        // Gunakan initialRole yang sudah dikonversi atau dipastikan tipenya
+        role: initialRole, 
         passwordBaru: "",
       });
     }
   }, [pegawai, form.reset]);
+
 
   const onProfileSubmit = (data: EditProfileFormValues) => {
     if (!pegawai) return;
@@ -83,7 +99,7 @@ export default function DialogEditPegawai({
 
     startProfileTransition(async () => {
       const result = await updatePegawaiProfile({
-        id: pegawai.id,
+        id: pegawai.id.toString(),
         ...profileData,
       });
 
@@ -126,7 +142,7 @@ export default function DialogEditPegawai({
 
     startPasswordTransition(async () => {
       const result = await adminUpdateUserPassword({
-        userId: pegawai.id,
+        userId: pegawai.id.toString(),
         passwordBaru: newPassword,
       });
 

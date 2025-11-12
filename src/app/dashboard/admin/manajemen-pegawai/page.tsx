@@ -36,7 +36,7 @@ export default function ManajemenPegawaiPage() {
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["pegawai", page, search],
     queryFn: fetchPegawai,
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
   useEffect(() => {

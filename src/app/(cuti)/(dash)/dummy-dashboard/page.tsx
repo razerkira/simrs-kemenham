@@ -23,6 +23,7 @@ import Calendar from "./calendar";
 const dummyProfile: Profile = {
   id: "1",
   nama: "Kasubag TU",
+  name: "Kasubag TU",
   email: "kasubag@example.com",
   role: "admin",
   created_at: "2025-07-08",

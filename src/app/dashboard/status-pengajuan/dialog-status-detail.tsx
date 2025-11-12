@@ -33,7 +33,7 @@ import { id as localeID } from "date-fns/locale";
 type PengajuanDetail = PengajuanCuti | PengajuanDinas;
 
 interface DialogStatusDetailProps {
-  pengajuan: PengajuanDetail | null;
+  pengajuan: PengajuanDetail | any | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }

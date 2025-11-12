@@ -26,7 +26,7 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const { user, token, login, logout, isRehydrated } = useAuthStore();
-  const [profile, setProfile] = useState<UserProfile | null>(user ?? null);
+  const [profile, setProfile] = useState<UserProfile | Profile | null>(user ?? null);
   const [loading, setLoading] = useState(true);
 
   const [isCollapsed, setIsCollapsed] = useState(false);

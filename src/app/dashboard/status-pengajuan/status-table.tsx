@@ -81,14 +81,14 @@ export default function StatusTable() {
   >(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const fetchCuti = async (): Promise<PaginationResponse> => {
+  const fetchCuti = async (): Promise<any> => {
     const res = await api.get("/api/v1/cuti/my", {
       params: { page: pageCuti, search: searchCuti },
     });
     return res.data;
   };
 
-  const fetchDinas = async (): Promise<PaginationResponse> => {
+  const fetchDinas = async (): Promise<any> => {
     const res = await api.get("/api/v1/perjalanan/my", {
       params: { page: pageDinas, search: searchDinas },
     });
@@ -98,13 +98,13 @@ export default function StatusTable() {
   const { data: cutiData, isLoading: loadingCuti } = useQuery({
     queryKey: ["cuti", pageCuti, searchCuti],
     queryFn: fetchCuti,
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
   const { data: dinasData, isLoading: loadingDinas } = useQuery({
     queryKey: ["dinas", pageDinas, searchDinas],
     queryFn: fetchDinas,
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
   const handleOpenDetail = (item: PengajuanCuti | PengajuanDinas) => {

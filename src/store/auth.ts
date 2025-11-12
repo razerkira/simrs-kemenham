@@ -1,3 +1,4 @@
+import { UserProfile } from "@/types/database";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -12,9 +13,9 @@ interface User {
 }
 
 interface AuthState {
-  user: User | null;
+  user: UserProfile | null;
   token: string | null;
-  login: (user: User, token: string) => void;
+  login: (user: UserProfile, token: string) => void;
   logout: () => void;
   isRehydrated?: boolean; // ✅ Tambah flag
 }
