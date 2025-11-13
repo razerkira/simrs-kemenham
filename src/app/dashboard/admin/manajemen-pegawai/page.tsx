@@ -9,6 +9,7 @@ import ManajemenPegawaiTable from "./manajemen-pegawai-table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import PegawaiTable from "./pegawai-table";
 
 interface PegawaiResponse {
   current_page: number;
@@ -52,26 +53,9 @@ export default function ManajemenPegawaiPage() {
             Kelola data profil, akun, dan role untuk seluruh pegawai Kemenham.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder="Cari nama, email, atau NIP..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-[250px]"
-          />
-          <Button
-            variant="secondary"
-            onClick={() => refetch()}
-            disabled={isFetching}
-          >
-            <Search className="h-4 w-4 mr-2" />
-            Cari
-          </Button>
-        </div>
       </div>
 
-      <ManajemenPegawaiTable
+      {/* <ManajemenPegawaiTable
         dataPegawai={data?.data ?? []}
         loading={isLoading}
         pagination={{
@@ -80,7 +64,9 @@ export default function ManajemenPegawaiPage() {
           total: data?.total ?? 0,
           onPageChange: (p) => setPage(p),
         }}
-      />
+      /> */}
+
+      <PegawaiTable />
     </div>
   );
 }

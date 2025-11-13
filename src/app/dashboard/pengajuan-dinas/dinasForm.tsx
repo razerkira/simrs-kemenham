@@ -9,6 +9,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import api from "@/lib/axios";
+import { DinasFormValues, dinasSchema } from "./validation";
 
 type Pegawai = {
   id: number;
@@ -105,18 +106,28 @@ export default function DinasForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      pegawaiList.some((p) => !p.id) ||
-      !kegiatan ||
-      !mulai ||
-      !selesai ||
-      !file
-    ) {
-      toast.error("Harap isi semua field wajib.");
+    if (!file) {
+      toast.error("Lampiran wajib diunggah.");
       return;
     }
 
-    // Validasi tanggal
+    const formValues: DinasFormValues = {
+      pegawaiList,
+      kegiatan,
+      jenis,
+      mulai,
+      selesai,
+      file,
+    };
+
+    const result = dinasSchema.safeParse(formValues);
+
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      toast.error(firstError.message);
+      return;
+    }
+
     if (new Date(mulai) > new Date(selesai)) {
       toast.error(
         "Tanggal mulai tidak boleh lebih besar dari tanggal selesai."
@@ -134,10 +145,9 @@ export default function DinasForm() {
 
     submitDinas(formData);
   };
-
   return (
     <div className="px-4">
-      <Toaster />
+      {/* <Toaster /> */}
       <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">

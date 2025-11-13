@@ -142,15 +142,18 @@ export default function Sidebar({ profile, isCollapsed }: SidebarProps) {
                   Ajukan Cuti
                 </SidebarLink>
               </li>
-              <li>
-                <SidebarLink
-                  href="/dashboard/pengajuan-dinas"
-                  isCollapsed={isCollapsed}
-                  icon={PlaneTakeoff}
-                >
-                  Ajukan Dinas
-                </SidebarLink>
-              </li>
+              {isVerificator && (
+                <li>
+                  <SidebarLink
+                    href="/dashboard/pengajuan-dinas"
+                    isCollapsed={isCollapsed}
+                    icon={PlaneTakeoff}
+                  >
+                    Ajukan Dinas
+                  </SidebarLink>
+                </li>
+              )}
+
               <li>
                 <SidebarLink
                   href="/dashboard/status-pengajuan"
@@ -158,6 +161,15 @@ export default function Sidebar({ profile, isCollapsed }: SidebarProps) {
                   icon={FileClock}
                 >
                   Status Pengajuan Saya
+                </SidebarLink>
+              </li>
+              <li>
+                <SidebarLink
+                  href="/dashboard/profile"
+                  isCollapsed={isCollapsed}
+                  icon={FileClock}
+                >
+                  Profil Saya
                 </SidebarLink>
               </li>
             </ul>
@@ -238,7 +250,7 @@ export default function Sidebar({ profile, isCollapsed }: SidebarProps) {
                   Manajemen Pegawai
                 </SidebarLink>
               </li>
-              <li>
+              {/* <li>
                 <SidebarLink
                   href="/dashboard/admin/buat-akun"
                   isCollapsed={isCollapsed}
@@ -246,7 +258,7 @@ export default function Sidebar({ profile, isCollapsed }: SidebarProps) {
                 >
                   Buat Akun Pegawai
                 </SidebarLink>
-              </li>
+              </li> */}
               <li>
                 <SidebarLink
                   href="/dashboard/admin/users"

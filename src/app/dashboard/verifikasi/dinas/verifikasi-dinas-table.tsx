@@ -208,19 +208,20 @@ export default function VerifikasiPerjalananPage() {
                   </TableCell>
                   <TableCell>
                     {item.lampiran ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          window.open(
-                            `${baseURL}/storage/${item.lampiran}`,
-                            "_blank"
-                          )
+                      <a
+                        href={
+                          item.lampiran.startsWith("http")
+                            ? item.lampiran
+                            : `${baseURL}/storage/${item.lampiran}`
                         }
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        <FileText className="h-4 w-4 mr-1" />
-                        Buka Dokumen
-                      </Button>
+                        <Button variant="outline" size="sm" className="mt-2">
+                          <FileText className="h-4 w-4 mr-1" />
+                          Buka Dokumen
+                        </Button>
+                      </a>
                     ) : (
                       "-"
                     )}

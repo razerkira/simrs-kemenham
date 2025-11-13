@@ -7,16 +7,16 @@ import { Send, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import api from "@/lib/axios";
 import { useAuthStore } from "@/store/auth";
+import { CutiFormValues, cutiSchema } from "./validation";
 
 export default function CutiForm() {
-  const { user } = useAuthStore(); // Ambil data user dari Zustand
+  const { user } = useAuthStore();
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [tanggalSelesai, setTanggalSelesai] = useState("");
   const [alasan, setAlasan] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [jenisCuti, setJenisCuti] = useState("");
 
-  // ✅ Hitung tanggal hari ini (WIB)
   const todayWIB = new Date(Date.now() + 7 * 60 * 60 * 1000)
     .toISOString()
     .split("T")[0];
@@ -59,31 +59,30 @@ export default function CutiForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!tanggalMulai || !tanggalSelesai || !alasan || !jenisCuti) {
-      toast.error("Harap isi semua field wajib.");
+    if (!file) {
+      toast.error("Lampiran wajib diunggah.");
       return;
     }
+    const formValues: CutiFormValues = {
+      jenis_cuti: jenisCuti,
+      tanggal_mulai: tanggalMulai,
+      tanggal_selesai: tanggalSelesai,
+      alasan,
+      file: file ?? undefined,
+    };
 
-    const start = new Date(`${tanggalMulai}T00:00:00+07:00`);
-    const end = new Date(`${tanggalSelesai}T23:59:59+07:00`);
-    if (end < start) {
-      toast.error("Tanggal selesai harus setelah tanggal mulai.");
+    const result = cutiSchema.safeParse(formValues);
+
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      toast.error(firstError.message);
       return;
     }
-
-    const durasi = (end.getTime() - start.getTime()) / (1000 * 3600 * 24) + 1;
-    if (durasi > 30) {
-      toast.error("Durasi cuti tidak boleh lebih dari 30 hari.");
-      return;
-    }
-
     submitCuti();
   };
-
   return (
     <div className="px-4">
-      <Toaster />
+      {/* <Toaster /> */}
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">

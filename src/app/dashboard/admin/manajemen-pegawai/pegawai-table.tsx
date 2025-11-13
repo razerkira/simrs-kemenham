@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
-import { returnRole } from "@/lib/utils";
 import { toast } from "sonner";
 
 import {
@@ -33,77 +32,79 @@ import {
   Search,
 } from "lucide-react";
 
-import UserDialogAdd from "./user-dialog-add";
-import UserDialogEdit from "./user-dialog-edit";
 import { useAuthStore } from "@/store/auth";
+import PegawaiDialogAdd from "./pegawai-dialog-add";
+import PegawaiDialogEdit from "./pegawai-dialog-edit";
 
-interface User {
+interface Pegawai {
   id: number;
-  name: string;
-  username: string;
+  user_id: number;
+  nip: string;
+  nama: string;
+  jabatan: string;
   email: string;
-  role: number;
+  no_hp: string;
+  instansi_id: number;
+  unit_id: number;
   status_aktif: number;
-  last_login: string;
-  pegawai: any;
+  user: { username: string };
+  instansi: { nama_instansi: string };
+  unit: { nama_unit: string };
 }
 
 interface PaginationResponse {
   current_page: number;
   last_page: number;
   total: number;
-  data: User[];
+  data: Pegawai[];
 }
 
-export default function UserTable() {
+export default function PegawaiTable() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const currentRole = user?.role ?? 0;
 
   const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState(""); // input text
-  const [searchParam, setSearchParam] = useState(""); // param API
-  const [selected, setSelected] = useState<User | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchParam, setSearchParam] = useState("");
+  const [selected, setSelected] = useState<Pegawai | null>(null);
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
 
-  // 🔹 Fetch API dengan TanStack Query
-  const fetchUsers = async (): Promise<PaginationResponse> => {
-    const res = await api.get("/api/v1/users", {
+  const fetchPegawai = async (): Promise<PaginationResponse> => {
+    const res = await api.get("/api/v1/pegawai", {
       params: { page, search: searchParam },
     });
     return res.data;
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["users", page, searchParam],
-    queryFn: fetchUsers,
+    queryKey: ["pegawai", page, searchParam],
+    queryFn: fetchPegawai,
     placeholderData: (prev) => prev,
   });
 
-  // 🔹 Delete User
-  const deleteUser = useMutation({
-    mutationFn: async (id: number) => await api.delete(`/api/v1/users/${id}`),
+  const deletePegawai = useMutation({
+    mutationFn: async (id: number) => await api.delete(`/api/v1/pegawai/${id}`),
     onSuccess: () => {
-      toast.success("User berhasil dihapus");
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Pegawai berhasil dihapus");
+      queryClient.invalidateQueries({ queryKey: ["pegawai"] });
     },
-    onError: () => toast.error("Gagal menghapus user"),
+    onError: () => toast.error("Gagal menghapus pegawai"),
   });
 
-  // 🔹 Handle search tombol
   const handleSearch = () => {
-    setPage(1); // reset ke halaman 1 saat search baru
+    setPage(1);
     setSearchParam(searchInput.trim());
   };
 
   return (
     <Card>
       <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <CardTitle>Daftar Pengguna</CardTitle>
+        <CardTitle>Daftar Pegawai</CardTitle>
         <div className="flex gap-2">
           <Input
-            placeholder="Cari nama / email..."
+            placeholder="Cari nama / NIP..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="w-56"
@@ -126,40 +127,44 @@ export default function UserTable() {
               {isLoading
                 ? "Memuat data..."
                 : data?.data.length === 0
-                ? "Tidak ada user ditemukan."
-                : `Menampilkan ${data?.data.length} dari total ${data?.total} user.`}
+                ? "Tidak ada pegawai ditemukan."
+                : `Menampilkan ${data?.data.length} dari total ${data?.total} pegawai.`}
             </TableCaption>
             <TableHeader>
               <TableRow>
+                <TableHead>NIP</TableHead>
                 <TableHead>Nama</TableHead>
+                <TableHead>Jabatan</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Username</TableHead>
-                <TableHead>Role</TableHead>
+                <TableHead>No HP</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead>Unit</TableHead>
+                <TableHead>Instansi</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Pegawai</TableHead>
                 {currentRole === 1 && (
                   <TableHead className="text-right">Aksi</TableHead>
                 )}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.data.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{returnRole(user.role)}</TableCell>
-                  <TableCell>
-                    {user.status_aktif ? "Aktif" : "Nonaktif"}
-                  </TableCell>
-                  <TableCell>{user?.pegawai?.nama || "-"}</TableCell>
+              {data?.data.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell>{p.nip}</TableCell>
+                  <TableCell>{p.nama}</TableCell>
+                  <TableCell>{p.jabatan}</TableCell>
+                  <TableCell>{p.email}</TableCell>
+                  <TableCell>{p.no_hp}</TableCell>
+                  <TableCell>{p.user?.username || "-"}</TableCell>
+                  <TableCell>{p.unit?.nama_unit || "-"}</TableCell>
+                  <TableCell>{p.instansi?.nama_instansi || "-"}</TableCell>
+                  <TableCell>{p.status_aktif ? "Aktif" : "Nonaktif"}</TableCell>
                   {currentRole === 1 && (
                     <TableCell className="text-right space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          setSelected(user);
+                          setSelected(p);
                           setOpenEdit(true);
                         }}
                       >
@@ -169,8 +174,8 @@ export default function UserTable() {
                         size="sm"
                         variant="destructive"
                         onClick={() => {
-                          if (confirm("Yakin ingin menghapus user ini?"))
-                            deleteUser.mutate(user.id);
+                          if (confirm("Yakin ingin menghapus pegawai ini?"))
+                            deletePegawai.mutate(p.id);
                         }}
                       >
                         <Trash className="h-4 w-4" />
@@ -209,12 +214,12 @@ export default function UserTable() {
       </CardFooter>
 
       {/* Dialogs */}
-      <UserDialogAdd open={openAdd} setOpen={setOpenAdd} />
+      <PegawaiDialogAdd open={openAdd} setOpen={setOpenAdd} />
       {selected && (
-        <UserDialogEdit
+        <PegawaiDialogEdit
           open={openEdit}
           setOpen={setOpenEdit}
-          user={selected}
+          pegawai={selected}
           clearSelected={() => setSelected(null)}
         />
       )}
