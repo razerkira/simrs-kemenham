@@ -18,6 +18,7 @@ import {
   FileCheck,
   Users,
   UserPlus,
+  Building2,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -266,6 +267,15 @@ export default function Sidebar({ profile, isCollapsed }: SidebarProps) {
                   icon={Users}
                 >
                   Manajemen User
+                </SidebarLink>
+              </li>
+              <li>
+                <SidebarLink
+                  href="/dashboard/admin/manajemen-unit"
+                  isCollapsed={isCollapsed}
+                  icon={Building2}
+                >
+                  Manajemen Unit Kerja
                 </SidebarLink>
               </li>
             </ul>

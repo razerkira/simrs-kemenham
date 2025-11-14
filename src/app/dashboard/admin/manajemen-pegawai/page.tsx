@@ -27,23 +27,6 @@ export default function ManajemenPegawaiPage() {
     redirect("/");
   }
 
-  const fetchPegawai = async (): Promise<PegawaiResponse> => {
-    const res = await api.get(`/api/v1/pegawai`, {
-      params: { page, search },
-    });
-    return res.data;
-  };
-
-  const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["pegawai", page, search],
-    queryFn: fetchPegawai,
-    placeholderData: (previousData) => previousData,
-  });
-
-  useEffect(() => {
-    refetch();
-  }, [page, search]);
-
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

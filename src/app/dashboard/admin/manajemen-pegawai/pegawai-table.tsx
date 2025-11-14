@@ -136,7 +136,7 @@ export default function PegawaiTable() {
                 <TableHead>Nama</TableHead>
                 <TableHead>Jabatan</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>No HP</TableHead>
+                {/* <TableHead>No HP</TableHead> */}
                 <TableHead>User</TableHead>
                 <TableHead>Unit</TableHead>
                 <TableHead>Instansi</TableHead>
@@ -153,7 +153,7 @@ export default function PegawaiTable() {
                   <TableCell>{p.nama}</TableCell>
                   <TableCell>{p.jabatan}</TableCell>
                   <TableCell>{p.email}</TableCell>
-                  <TableCell>{p.no_hp}</TableCell>
+                  {/* <TableCell>{p.no_hp}</TableCell> */}
                   <TableCell>{p.user?.username || "-"}</TableCell>
                   <TableCell>{p.unit?.nama_unit || "-"}</TableCell>
                   <TableCell>{p.instansi?.nama_instansi || "-"}</TableCell>
