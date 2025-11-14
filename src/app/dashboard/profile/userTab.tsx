@@ -66,28 +66,28 @@ export default function UserTab({ user, updateStoreUser }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label>Nama</Label>
+        <Label className="mb-2">Nama</Label>
         <Input
           value={form.name}
           onChange={(e) => handleChange("name", e.target.value)}
         />
       </div>
       <div>
-        <Label>Username</Label>
+        <Label className="mb-2">Username</Label>
         <Input
           value={form.username}
           onChange={(e) => handleChange("username", e.target.value)}
         />
       </div>
       <div>
-        <Label>Email</Label>
+        <Label className="mb-2">Email</Label>
         <Input
           value={form.email}
           onChange={(e) => handleChange("email", e.target.value)}
         />
       </div>
       <div>
-        <Label>Password</Label>
+        <Label className="mb-2">Password</Label>
         <Input
           type="password"
           value={form.password}

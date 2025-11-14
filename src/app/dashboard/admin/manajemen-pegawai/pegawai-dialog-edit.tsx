@@ -55,23 +55,51 @@ export default function PegawaiDialogEdit({
   clearSelected,
 }: Props) {
   const queryClient = useQueryClient();
+  const [isFormReady, setIsFormReady] = useState(false);
 
   // Form state
   const [form, setForm] = useState({
-    user_id: String(pegawai.user_id || ""),
-    nip: pegawai.nip || "",
-    nama: pegawai.nama || "",
-    jabatan: pegawai.jabatan || "",
-    email: pegawai.email || "",
-    no_hp: pegawai.no_hp || "",
-    instansi_id: String(pegawai.instansi_id || ""),
-    unit_id: String(pegawai.unit_id || ""),
-    status_aktif: String(pegawai.status_aktif || "1"),
+    user_id: "",
+    nip: "",
+    nama: "",
+    jabatan: "",
+    email: "",
+    no_hp: "",
+    instansi_id: "",
+    unit_id: "",
+    status_aktif: "1",
   });
 
-  // Re-sync saat pegawai berubah
+  // Fetch user untuk select
+  const { data: users, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["users-select"],
+    queryFn: async () => {
+      const res = await api.get("/api/v1/users");
+      return res.data.data;
+    },
+  });
+
+  // Fetch instansi dari API
+  const { data: instansiData, isLoading: isLoadingInstansi } = useQuery({
+    queryKey: ["instansi"],
+    queryFn: async () => {
+      const res = await api.get("/api/v1/instansi");
+      return res.data.data;
+    },
+  });
+
+  // Fetch unit dari API
+  const { data: unitData, isLoading: isLoadingUnit } = useQuery({
+    queryKey: ["unitkerja"],
+    queryFn: async () => {
+      const res = await api.get("/api/v1/unitkerja");
+      return res.data.data;
+    },
+  });
+
+  // Inisialisasi form setelah semua data tersedia
   useEffect(() => {
-    if (pegawai) {
+    if (pegawai && users && instansiData && unitData && !isFormReady) {
       setForm({
         user_id: String(pegawai.user_id || ""),
         nip: pegawai.nip || "",
@@ -83,21 +111,16 @@ export default function PegawaiDialogEdit({
         unit_id: String(pegawai.unit_id || ""),
         status_aktif: String(pegawai.status_aktif || "1"),
       });
+      setIsFormReady(true);
     }
-  }, [pegawai]);
+  }, [pegawai, users, instansiData, unitData, isFormReady]);
 
-  // Fetch user untuk select
-  const { data: users } = useQuery({
-    queryKey: ["users-select"],
-    queryFn: async () => {
-      const res = await api.get("/api/v1/users");
-      return res.data.data;
-    },
-  });
-
-  // Dummy instansi dan unit
-  const instansiDummy = [{ id: 1, nama_instansi: "SDM" }];
-  const unitDummy = [{ id: 1, nama_unit: "Admin" }];
+  // Reset isFormReady ketika dialog dibuka/tutup
+  useEffect(() => {
+    if (!open) {
+      setIsFormReady(false);
+    }
+  }, [open]);
 
   // Mutation update
   const mutation = useMutation({
@@ -115,128 +138,170 @@ export default function PegawaiDialogEdit({
   const handleChange = (key: string, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  // Filter unit berdasarkan instansi yang dipilih
+  const filteredUnits = unitData?.filter(
+    (u: any) => String(u.instansi_id) === form.instansi_id
+  );
+
+  const isLoading = isLoadingUsers || isLoadingInstansi || isLoadingUnit || !isFormReady;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Edit Pegawai</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-3">
-          <Label>User</Label>
-          <Select
-            value={form.user_id}
-            onValueChange={(v) => handleChange("user_id", v)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih User" />
-            </SelectTrigger>
-            <SelectContent>
-              {users?.map((u: any) => (
-                <SelectItem key={u.id} value={String(u.id)}>
-                  {u.username}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {isLoading ? (
+          <div className="py-8 text-center text-muted-foreground">
+            Loading data...
+          </div>
+        ) : (
+          <>
+            <div className="overflow-y-auto flex-1 px-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>User</Label>
+                  <Select
+                    value={form.user_id}
+                    onValueChange={(v) => handleChange("user_id", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih User" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {users?.map((u: any) => (
+                        <SelectItem key={u.id} value={String(u.id)}>
+                          {u.username}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          <Label>NIP</Label>
-          <Input
-            value={form.nip}
-            onChange={(e) => handleChange("nip", e.target.value)}
-          />
+                <div className="space-y-2">
+                  <Label>NIP</Label>
+                  <Input
+                    value={form.nip}
+                    onChange={(e) => handleChange("nip", e.target.value)}
+                  />
+                </div>
 
-          <Label>Nama</Label>
-          <Input
-            value={form.nama}
-            onChange={(e) => handleChange("nama", e.target.value)}
-          />
+                <div className="space-y-2">
+                  <Label>Nama</Label>
+                  <Input
+                    value={form.nama}
+                    onChange={(e) => handleChange("nama", e.target.value)}
+                  />
+                </div>
 
-          <Label>Jabatan</Label>
-          <Input
-            value={form.jabatan}
-            onChange={(e) => handleChange("jabatan", e.target.value)}
-          />
+                <div className="space-y-2">
+                  <Label>Jabatan</Label>
+                  <Input
+                    value={form.jabatan}
+                    onChange={(e) => handleChange("jabatan", e.target.value)}
+                  />
+                </div>
 
-          <Label>Email</Label>
-          <Input
-            type="email"
-            value={form.email}
-            onChange={(e) => handleChange("email", e.target.value)}
-          />
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                  />
+                </div>
 
-          <Label>No HP</Label>
-          <Input
-            value={form.no_hp}
-            onChange={(e) => handleChange("no_hp", e.target.value)}
-          />
+                <div className="space-y-2">
+                  <Label>No HP</Label>
+                  <Input
+                    value={form.no_hp}
+                    onChange={(e) => handleChange("no_hp", e.target.value)}
+                  />
+                </div>
 
-          <Label>Instansi</Label>
-          <Select
-            value={form.instansi_id}
-            onValueChange={(v) => handleChange("instansi_id", v)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih Instansi" />
-            </SelectTrigger>
-            <SelectContent>
-              {instansiDummy.map((i) => (
-                <SelectItem key={i.id} value={String(i.id)}>
-                  {i.nama_instansi}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                <div className="space-y-2">
+                  <Label>Instansi</Label>
+                  <Select
+                    value={form.instansi_id}
+                    onValueChange={(v) => {
+                      handleChange("instansi_id", v);
+                      handleChange("unit_id", ""); // Reset unit saat ganti instansi
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih Instansi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {instansiData?.map((i: any) => (
+                        <SelectItem key={i.id} value={String(i.id)}>
+                          {i.nama_instansi}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          <Label>Unit</Label>
-          <Select
-            value={form.unit_id}
-            onValueChange={(v) => handleChange("unit_id", v)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih Unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {unitDummy.map((u) => (
-                <SelectItem key={u.id} value={String(u.id)}>
-                  {u.nama_unit}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                <div className="space-y-2">
+                  <Label>Unit</Label>
+                  <Select
+                    value={form.unit_id}
+                    onValueChange={(v) => handleChange("unit_id", v)}
+                    disabled={!form.instansi_id}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredUnits?.map((u: any) => (
+                        <SelectItem key={u.id} value={String(u.id)}>
+                          {u.nama_unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          <Label>Status Aktif</Label>
-          <Select
-            value={form.status_aktif}
-            onValueChange={(v) => handleChange("status_aktif", v)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih Status" />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Status Aktif</Label>
+                  <Select
+                    value={form.status_aktif}
+                    onValueChange={(v) => handleChange("status_aktif", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setOpen(false);
-              clearSelected();
-            }}
-          >
-            Batal
-          </Button>
-          <Button onClick={() => mutation.mutate(form)}>
-            {mutation.isPending ? "Menyimpan..." : "Simpan"}
-          </Button>
-        </DialogFooter>
+            <DialogFooter className="mt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setOpen(false);
+                  clearSelected();
+                }}
+              >
+                Batal
+              </Button>
+              <Button 
+                onClick={() => mutation.mutate(form)}
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? "Menyimpan..." : "Simpan"}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -31,7 +31,6 @@ export default function DashboardLayout({
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
-  console.log(token);
 
   useEffect(() => {
     const checkAuth = async () => {

@@ -44,20 +44,22 @@ export default function PegawaiTab({ pegawai }: Props) {
     status_aktif: "1",
   });
 
+  const [isFormReady, setIsFormReady] = useState(false); // ✅ Track form initialization
+
   // 🔹 Ambil data instansi dan unit
-  const { data: instansiData } = useQuery({
+  const { data: instansiData, isLoading: isLoadingInstansi } = useQuery({
     queryKey: ["instansi"],
     queryFn: async () => (await api.get("/api/v1/instansi")).data.data,
   });
 
-  const { data: unitData } = useQuery({
+  const { data: unitData, isLoading: isLoadingUnit } = useQuery({
     queryKey: ["unitkerja"],
     queryFn: async () => (await api.get("/api/v1/unitkerja")).data.data,
   });
 
-  // ✅ Saat props pegawai berubah, isi form otomatis
+  // ✅ Inisialisasi form HANYA setelah semua data tersedia
   useEffect(() => {
-    if (pegawai && instansiData) {
+    if (pegawai && instansiData && unitData && !isFormReady) {
       setForm({
         nip: pegawai.nip || "",
         nama: pegawai.nama || "",
@@ -68,8 +70,9 @@ export default function PegawaiTab({ pegawai }: Props) {
         unit_id: pegawai.unit_id || 0,
         status_aktif: String(pegawai.status_aktif ?? "1"),
       });
+      setIsFormReady(true); // ✅ Tandai form sudah diinisialisasi
     }
-  }, [pegawai, instansiData]);
+  }, [pegawai, instansiData, unitData, isFormReady]);
 
   const mutation = useMutation({
     mutationFn: async () => api.put(`/api/v1/pegawai/${pegawai?.id}`, form),
@@ -89,41 +92,45 @@ export default function PegawaiTab({ pegawai }: Props) {
     }
     mutation.mutate();
   };
-  if (!instansiData) return <div>Loading data...</div>;
+
+  // ✅ Loading state yang lebih baik
+  if (isLoadingInstansi || isLoadingUnit || !isFormReady) {
+    return <div>Loading data...</div>;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label>NIP</Label>
+          <Label className="mb-2">NIP</Label>
           <Input
             value={form.nip}
             onChange={(e) => handleChange("nip", e.target.value)}
           />
         </div>
         <div>
-          <Label>Nama</Label>
+          <Label className="mb-2">Nama</Label>
           <Input
             value={form.nama}
             onChange={(e) => handleChange("nama", e.target.value)}
           />
         </div>
         <div>
-          <Label>Jabatan</Label>
+          <Label className="mb-2">Jabatan</Label>
           <Input
             value={form.jabatan}
             onChange={(e) => handleChange("jabatan", e.target.value)}
           />
         </div>
         <div>
-          <Label>Email</Label>
+          <Label className="mb-2">Email</Label>
           <Input
             value={form.email}
             onChange={(e) => handleChange("email", e.target.value)}
           />
         </div>
         <div>
-          <Label>No HP</Label>
+          <Label className="mb-2">No HP</Label>
           <Input
             value={form.no_hp}
             onChange={(e) => handleChange("no_hp", e.target.value)}
@@ -131,11 +138,10 @@ export default function PegawaiTab({ pegawai }: Props) {
         </div>
 
         {/* 🔹 Instansi */}
-        {/* 🔹 Instansi */}
         <div>
-          <Label>Instansi</Label>
+          <Label className="mb-2">Instansi</Label>
           <Select
-            value={String(form.instansi_id ?? "")}
+            value={form.instansi_id > 0 ? String(form.instansi_id) : undefined} // ✅ Hanya set value jika valid
             onValueChange={(v) => handleChange("instansi_id", Number(v))}
           >
             <SelectTrigger>
@@ -153,9 +159,9 @@ export default function PegawaiTab({ pegawai }: Props) {
 
         {/* 🔹 Unit kerja */}
         <div>
-          <Label>Unit Kerja</Label>
+          <Label className="mb-2">Unit Kerja</Label>
           <Select
-            value={String(form.unit_id ?? "")}
+            value={form.unit_id > 0 ? String(form.unit_id) : undefined} // ✅ Hanya set value jika valid
             onValueChange={(v) => handleChange("unit_id", Number(v))}
           >
             <SelectTrigger>
