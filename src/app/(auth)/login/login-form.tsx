@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
+import { toast } from "sonner";
 
 export default function LoginForm() {
   const [username, setUsername] = useState("");
@@ -26,7 +27,7 @@ export default function LoginForm() {
       login(res.data.user, res.data.token);
       router.push("/dashboard");
     } catch (err: any) {
-      alert(err.response?.data?.message || "Login gagal");
+      toast.error(err.response?.data?.message || "Login gagal");
     } finally {
       setLoading(false);
     }
