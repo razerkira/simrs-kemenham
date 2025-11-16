@@ -125,7 +125,10 @@ export default function VerifikasiPerjalananPage() {
           variables.status === "Disetujui" ? "disetujui" : "ditolak"
         }`
       );
-      queryClient.invalidateQueries({ queryKey: ["verifikasi-perjalanan"] });
+      queryClient.invalidateQueries({
+        queryKey: ["verifikasi-perjalanan"],
+        exact: false,
+      });
       setOpenDialog(false);
       setCatatan("");
       setSelected(null);

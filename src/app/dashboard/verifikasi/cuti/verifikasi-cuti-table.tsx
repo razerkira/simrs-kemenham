@@ -123,7 +123,10 @@ export default function VerifikasiCutiPage() {
       toast.success(
         `Cuti ${variables.status === "Disetujui" ? "disetujui" : "ditolak"}`
       );
-      queryClient.invalidateQueries({ queryKey: ["verifikasi-cuti"] });
+      queryClient.invalidateQueries({
+        queryKey: ["verifikasi-cuti"],
+        exact: false,
+      });
       setOpenDialog(false);
       setCatatan("");
       setSelected(null);

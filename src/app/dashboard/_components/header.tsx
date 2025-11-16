@@ -6,7 +6,8 @@ import { Profile, UserProfile } from "@/types/database";
 import { usePathname } from "next/navigation";
 // --- IMPOR BARU ---
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react"; // Ikon Burger Menu
+import { Bell, Menu } from "lucide-react"; // Ikon Burger Menu
+import NotificationPopover from "@/components/notification/notification-popover";
 
 const pathTitles: { [key: string]: string } = {
   "/": "Beranda Dashboard",
@@ -51,6 +52,7 @@ export default function Header({ profile, toggleSidebar }: HeaderProps) {
       {/* --- SELESAI BAGIAN KIRI --- */}
       {/* Bagian Kanan Header (Info User + Logout - Tidak Berubah) */}
       <div className="flex items-center gap-4">
+        <NotificationPopover />
         <div className="text-right">
           <div className="font-medium">
             {profile?.name ?? "Nama Belum Diisi"}
