@@ -20,3 +20,45 @@ export const returnRole = (roleNumber: number | string): UserRole => {
       return "pegawai"; // Default atau case 4
   }
 };
+
+/**
+ * Util role-check universal untuk seluruh aplikasi.
+ * Bisa dipakai di halaman mana pun (client/server),
+ * karena hanya operasi angka dan tanpa window.
+ */
+
+ export type RoleCheckResult = {
+  isAdmin: boolean;
+  isAdminUnit: boolean;
+  isAdminInstansi: boolean;
+  isAdminPusat: boolean;
+  isPegawai: boolean;
+
+  // Role gabungan
+  isVerificator: boolean;
+  isSupervisor: boolean;
+  isAnyAdmin: boolean;
+};
+
+export function checkUserRoles(roleInput?: number | string): RoleCheckResult {
+  const role = Number(roleInput);
+
+  const isAdmin = role === 1;
+  const isAdminUnit = role === 2;
+  const isAdminInstansi = role === 3;
+  const isAdminPusat = role === 4;
+  const isPegawai = role === 5;
+
+  return {
+    isAdmin,
+    isAdminUnit,
+    isAdminInstansi,
+    isAdminPusat,
+    isPegawai,
+
+    // gabungan
+    isVerificator: isAdminUnit || isAdminInstansi || isAdminPusat || isAdmin,
+    isSupervisor: isAdminInstansi || isAdminPusat || isAdmin,
+    isAnyAdmin: isAdmin || isAdminUnit || isAdminInstansi || isAdminPusat,
+  };
+}

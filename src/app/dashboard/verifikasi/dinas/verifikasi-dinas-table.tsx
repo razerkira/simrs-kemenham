@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import {
@@ -33,6 +33,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/auth";
+import { guardRole } from "@/lib/guard-role";
 
 interface Pegawai {
   id: number;
@@ -88,6 +90,18 @@ export default function VerifikasiPerjalananPage() {
   const [catatan, setCatatan] = useState("");
 
   const queryClient = useQueryClient();
+
+  const { user } = useAuthStore();
+
+  // Run guard role
+  useEffect(() => {
+    if (user?.role) {
+      guardRole(
+        (r) => r.isVerificator, // hanya role 2/3/4/1
+        user.role
+      );
+    }
+  }, []);
 
   // ====== FETCH DATA ======
   const fetchPendingPerjalanan = async (): Promise<PaginationResponse> => {
