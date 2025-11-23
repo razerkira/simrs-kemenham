@@ -172,7 +172,7 @@ export default function VerifikasiCutiPage() {
         user.role
       );
     }
-  }, []);
+  }, [user]);
 
   return (
     <Card>

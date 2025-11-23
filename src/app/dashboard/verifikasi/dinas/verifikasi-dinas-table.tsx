@@ -101,7 +101,7 @@ export default function VerifikasiPerjalananPage() {
         user.role
       );
     }
-  }, []);
+  }, [user]);
 
   // ====== FETCH DATA ======
   const fetchPendingPerjalanan = async (): Promise<PaginationResponse> => {
