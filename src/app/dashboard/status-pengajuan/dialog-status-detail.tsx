@@ -14,8 +14,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, AlertCircle } from "lucide-react";
+import {useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import api from "@/lib/axios";
 
 interface PengajuanCuti {
   id: number;
@@ -80,6 +82,38 @@ export default function DialogStatusDetail({
     console.log("Buka lampiran:", fileUrl);
     window.open(fileUrl, "_blank", "noopener,noreferrer");
   }, [pengajuan.lampiran, baseURL]);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const queryClient = useQueryClient();
+
+const deleteMutation = useMutation({
+
+
+  mutationFn: async () => {
+    const endpoint = isCuti
+      ? "/api/v1/cuti/delete"
+      : "/api/v1/perjalanan/delete";
+
+    return await api.post(endpoint, { id: pengajuan.id });
+  },
+  onSuccess: () => {
+    toast.success(
+      `${isCuti ? "Cuti" : "Perjalanan dinas"} berhasil dihapus`
+    );
+
+    // Refetch list
+    queryClient.invalidateQueries({ queryKey: ["cuti"], exact: false });
+    queryClient.invalidateQueries({ queryKey: ["dinas"], exact: false });
+
+    onOpenChange(false);
+  },
+  onError: () => {
+    toast.error("Gagal menghapus pengajuan");
+  },
+});
+
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -174,12 +208,48 @@ export default function DialogStatusDetail({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex justify-between">
+        <Button
+  variant="destructive"
+  onClick={() => setConfirmOpen(true)}
+  disabled={deleteMutation.isPending}
+>
+  Unfollow / Hapus
+</Button>
+
           <DialogClose asChild>
             <Button variant="outline">Tutup</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+  <DialogContent className="max-w-sm">
+    <DialogHeader>
+      <DialogTitle>Yakin ingin menghapus?</DialogTitle>
+      <DialogDescription>
+        Pengajuan {isCuti ? "cuti" : "perjalanan dinas"} akan dihapus permanen.
+      </DialogDescription>
+    </DialogHeader>
+
+    <DialogFooter>
+      <Button
+        variant="destructive"
+        onClick={() => {
+          deleteMutation.mutate();
+          setConfirmOpen(false);
+        }}
+      >
+        Ya, Hapus
+      </Button>
+
+      <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+        Batal
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
     </Dialog>
   );
 }
