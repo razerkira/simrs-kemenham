@@ -132,9 +132,9 @@ export default function StatusTable() {
               <TableCaption>
                 {loadingCuti
                   ? "Memuat data..."
-                  : cutiData?.length === 0
+                  : cutiData?.data?.length === 0
                   ? "Tidak ada pengajuan cuti."
-                  : `Menampilkan ${cutiData?.length} dari total ${cutiData?.total} pengajuan.`}
+                  : `Menampilkan ${cutiData?.data?.length} dari total ${cutiData?.total} pengajuan.`}
               </TableCaption>
               <TableHeader>
                 <TableRow>
@@ -146,7 +146,7 @@ export default function StatusTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {cutiData?.map((cuti: PengajuanCuti) => (
+                {cutiData?.data?.map((cuti: PengajuanCuti) => (
                   <TableRow
                     key={cuti.id}
                     className="cursor-pointer hover:bg-muted/50"
@@ -218,9 +218,9 @@ export default function StatusTable() {
               <TableCaption>
                 {loadingDinas
                   ? "Memuat data..."
-                  : dinasData?.length === 0
+                  : dinasData?.data.length === 0
                   ? "Tidak ada pengajuan dinas."
-                  : `Menampilkan ${dinasData?.length} dari total ${dinasData?.total} pengajuan.`}
+                  : `Menampilkan ${dinasData?.data.length} dari total ${dinasData.total} pengajuan.`}
               </TableCaption>
               <TableHeader>
                 <TableRow>
@@ -232,7 +232,7 @@ export default function StatusTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {dinasData?.map((dinas: PengajuanDinas) => (
+                {dinasData?.data.map((dinas: PengajuanDinas) => (
                   <TableRow
                     key={dinas.id}
                     className="cursor-pointer hover:bg-muted/50"
@@ -275,7 +275,7 @@ export default function StatusTable() {
             <Button
               variant="outline"
               size="sm"
-              disabled={dinasData?.current_page === dinasData?.last_page}
+              disabled={dinasData?.data.current_page === dinasData?.data.last_page}
               onClick={() => setPageDinas((prev) => prev + 1)}
             >
               <ChevronRight className="h-4 w-4" />
